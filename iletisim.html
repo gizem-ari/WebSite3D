@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İletişim & Sipariş | 3D Fabrika</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #F3F4F6;
+            color: #1F2937;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .btn-primary {
+            background-color: #2563EB;
+            border-color: #2563EB;
+        }
+        .btn-primary:hover {
+            background-color: #4F46E5;
+            border-color: #4F46E5;
+        }
+        .contact-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Üst Menü -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="index.html">3D Fabrika</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html#urunler">Ürünler</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- İletişim Bölümü -->
+    <div class="container my-5">
+        <div class="row justify-content-center g-5">
+            
+            <!-- Sol Taraf: İletişim Bilgileri -->
+            <div class="col-lg-4">
+                <h2 class="fw-bold mb-4">Bize Ulaşın</h2>
+                <p class="text-muted mb-5">Özel baskı talepleriniz, fiyatlandırma veya stoktaki ürünlerimiz için aşağıdaki formu doldurarak iletişime geçebilirsiniz.</p>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-white p-3 rounded shadow-sm text-primary me-3 fw-bold fs-5">@</div>
+                    <div>
+                        <h6 class="fw-bold mb-0">E-Posta</h6>
+                        <span class="text-muted">iletisim@3dfabrika.com</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-white p-3 rounded shadow-sm text-primary me-3 fw-bold fs-5">📍</div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Lokasyon</h6>
+                        <span class="text-muted">Konya, Türkiye <br> (Elden teslimat imkanı mevcuttur)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Taraf: İletişim Formu -->
+            <div class="col-lg-7">
+                <div class="card contact-card p-4 p-md-5 bg-white">
+                    <!-- Faz 4'te bu formu EmailJS veya Backend ile çalışır hale getireceğiz -->
+                    <form id="iletisimFormu" onsubmit="event.preventDefault(); alert('Mesajınız başarıyla alındı. (Test mesajıdır, Faz 4\'te aktifleşecektir)');">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Adınız Soyadınız</label>
+                                <input type="text" class="form-control" required placeholder="Adınız">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">E-Posta Adresiniz</label>
+                                <input type="email" class="form-control" required placeholder="ornek@mail.com">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Konu / Sipariş Edilecek Ürün</label>
+                            <input type="text" class="form-control" required placeholder="Örn: Fiyat Hesaplama Sonucu Siparişi">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mesajınız & Detaylar</label>
+                            <textarea class="form-control" rows="4" required placeholder="Baskı ile ilgili renk, boyut veya diğer özel isteklerinizi belirtebilirsiniz..."></textarea>
+                        </div>
+
+                        <!-- Fotoğraf Yükleme Alanı -->
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <label class="form-label fw-semibold text-primary">Görsel Yükle (Opsiyonel)</label>
+                            <p class="small text-muted mb-2">Bastırmak istediğiniz modelin referans fotoğrafını (.jpg, .png) yükleyebilirsiniz.</p>
+                            <input class="form-control form-control-sm" type="file" accept=".jpg, .jpeg, .png">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">Mesajı Gönder</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anında Fiyat Hesapla | 3D Fabrika</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #F3F4F6;
+            color: #1F2937;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .btn-primary {
+            background-color: #2563EB;
+            border-color: #2563EB;
+        }
+        .btn-primary:hover {
+            background-color: #4F46E5;
+            border-color: #4F46E5;
+        }
+        .calc-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        /* Sonuç alanı başlangıçta gizli olacak */
+        #sonucAlani {
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Üst Menü (index.html ile aynı) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="index.html">3D Fabrika</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active text-primary fw-semibold" href="hesapla.html">Anında Fiyat Al</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="iletisim.html">İletişim</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hesaplama Bölümü -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Baskı Maliyetini Hesapla</h2>
+                    <p class="text-muted">Dilimleyici (Slicer) programınızdan aldığınız verileri girerek anında tahmini fiyat alın.</p>
+                </div>
+
+                <div class="card calc-card p-4 p-md-5 bg-white">
+                    <form id="hesapFormu">
+                        
+                        <!-- Dosya Yükleme (Şimdilik sadece görsel UX için) -->
+                        <div class="mb-4">
+                            <label for="stlDosyasi" class="form-label fw-semibold">.STL Dosyanız (Opsiyonel - Sadece model ismi için)</label>
+                            <input class="form-control" type="file" id="stlDosyasi" accept=".stl">
+                            <div class="form-text">Dosyanız sunucularımıza yüklenmez, tarayıcınızda güvendedir.</div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Gramaj Girdisi -->
+                            <div class="col-md-4 mb-3">
+                                <label for="gramaj" class="form-label fw-semibold">Ağırlık (Gram)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="gramaj" placeholder="Örn: 150" required min="1">
+                                    <span class="input-group-text">gr</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Saat Girdisi -->
+                            <div class="col-md-4 mb-3">
+                                <label for="saat" class="form-label fw-semibold">Baskı Süresi (Saat)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="saat" placeholder="Örn: 5" required min="0">
+                                    <span class="input-group-text">sa</span>
+                                </div>
+                            </div>
+
+                            <!-- Dakika Girdisi -->
+                            <div class="col-md-4 mb-3">
+                                <label for="dakika" class="form-label fw-semibold">Baskı Süresi (Dakika)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="dakika" placeholder="Örn: 30" required min="0" max="59">
+                                    <span class="input-group-text">dk</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100 py-3 mt-3 fw-bold fs-5" onclick="fiyatHesapla()">
+                            Maliyeti Hesapla
+                        </button>
+                    </form>
+
+                    <!-- Sonuç Ekranı (JS ile gösterilecek) -->
+                    <div id="sonucAlani" class="mt-5 text-center p-4 bg-light rounded-3 border border-primary border-opacity-25">
+                        <h4 class="text-muted mb-2">Tahmini Baskı Ücreti</h4>
+                        <h1 class="display-4 fw-bold text-primary mb-4" id="sonucFiyat">0 ₺</h1>
+                        <p class="small text-muted mb-4">*Fiyatlar tahmini olup, modelin karmaşıklığına ve destek (support) ihtiyacına göre %10-15 değişiklik gösterebilir.</p>
+                        
+                        <a href="iletisim.html" class="btn btn-success btn-lg px-5">Siparişi Onayla & İletişime Geç</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Hesaplama Mantığı (JavaScript) -->
+    <script>
+        function fiyatHesapla() {
+            // Kullanıcının girdiği değerleri alıyoruz
+            const gramaj = parseFloat(document.getElementById('gramaj').value) || 0;
+            const saat = parseFloat(document.getElementById('saat').value) || 0;
+            const dakika = parseFloat(document.getElementById('dakika').value) || 0;
+
+            // Temel doğrulama: Gramaj girilmemişse uyarı ver
+            if (gramaj <= 0) {
+                alert("Lütfen geçerli bir gramaj (ağırlık) değeri giriniz.");
+                return;
+            }
+
+            // --- FİYATLANDIRMA PARAMETRELERİ ---
+            // Not: Faz 3'te (Backend) bu değerleri koda yazmak yerine MongoDB'den çekeceğiz!
+            const gramBasiMaliyet = 0.50; // Gram başına 0.50 TL (Filament + Fire payı)
+            const saatlikMakineUcreti = 15.00; // Saatlik amortisman ve elektrik ücreti
+            const sabitBaslangicUcreti = 50.00; // Baskı hazırlık, tabla temizleme, dilimleme emeği
+            const karMarji = 1.30; // %30 Kar marjı eklentisi
+            // -----------------------------------
+
+            // Toplam süreyi saate çeviriyoruz (Örn: 30 dk = 0.5 saat)
+            const toplamSaat = saat + (dakika / 60);
+
+            // Hesaplama Formülü
+            let hammaddeMaliyeti = gramaj * gramBasiMaliyet;
+            let zamanMaliyeti = toplamSaat * saatlikMakineUcreti;
+            
+            let araToplam = hammaddeMaliyeti + zamanMaliyeti + sabitBaslangicUcreti;
+            
+            let sonFiyat = araToplam * karMarji;
+
+            // Sonucu virgülden sonra 2 hane olacak şekilde yuvarla
+            document.getElementById('sonucFiyat').innerText = sonFiyat.toFixed(2) + " ₺";
+
+            // Gizli olan Sonuç Alanını görünür (block) yap
+            document.getElementById('sonucAlani').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
