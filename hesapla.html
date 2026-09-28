@@ -127,44 +127,48 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Hesaplama Mantığı (JavaScript) -->
-    <script>
-        function fiyatHesapla() {
-            // Kullanıcının girdiği değerleri alıyoruz
-            const gramaj = parseFloat(document.getElementById('gramaj').value) || 0;
-            const saat = parseFloat(document.getElementById('saat').value) || 0;
-            const dakika = parseFloat(document.getElementById('dakika').value) || 0;
+   <script>
+    // Sunucudan (Backend) ayarları tutacağımız genel değişken
+    let fiyatAyarlari = null;
 
-            // Temel doğrulama: Gramaj girilmemişse uyarı ver
-            if (gramaj <= 0) {
-                alert("Lütfen geçerli bir gramaj (ağırlık) değeri giriniz.");
-                return;
-            }
-
-            // --- FİYATLANDIRMA PARAMETRELERİ ---
-            // Not: Faz 3'te (Backend) bu değerleri koda yazmak yerine MongoDB'den çekeceğiz!
-            const gramBasiMaliyet = 0.50; // Gram başına 0.50 TL (Filament + Fire payı)
-            const saatlikMakineUcreti = 15.00; // Saatlik amortisman ve elektrik ücreti
-            const sabitBaslangicUcreti = 50.00; // Baskı hazırlık, tabla temizleme, dilimleme emeği
-            const karMarji = 1.30; // %30 Kar marjı eklentisi
-            // -----------------------------------
-
-            // Toplam süreyi saate çeviriyoruz (Örn: 30 dk = 0.5 saat)
-            const toplamSaat = saat + (dakika / 60);
-
-            // Hesaplama Formülü
-            let hammaddeMaliyeti = gramaj * gramBasiMaliyet;
-            let zamanMaliyeti = toplamSaat * saatlikMakineUcreti;
-            
-            let araToplam = hammaddeMaliyeti + zamanMaliyeti + sabitBaslangicUcreti;
-            
-            let sonFiyat = araToplam * karMarji;
-
-            // Sonucu virgülden sonra 2 hane olacak şekilde yuvarla
-            document.getElementById('sonucFiyat').innerText = sonFiyat.toFixed(2) + " ₺";
-
-            // Gizli olan Sonuç Alanını görünür (block) yap
-            document.getElementById('sonucAlani').style.display = 'block';
+    // 1. Sayfa yüklendiğinde arka yüze (API'ye) istek atıyoruz
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Node.js sunucumuzun adresine bağlanıyoruz
+            const response = await fetch('http://localhost:5000/api/fiyat-ayarlari');
+            fiyatAyarlari = await response.json();
+            console.log("✅ Sunucudan ayarlar başarıyla çekildi:", fiyatAyarlari);
+        } catch (error) {
+            console.error("❌ Sunucuya bağlanılamadı!", error);
+            alert("Fiyat ayarları sunucudan çekilemedi. Lütfen terminalde sunucunun (node server.js) çalıştığından emin olun.");
         }
-    </script>
+    });
+
+    // 2. Fiyat hesaplama fonksiyonunu güncelliyoruz
+    // (Aşağıdaki ID'leri kendi yazdığın form ID'leri ile eşleştirebilirsin)
+    function hesapla(event) {
+        if(event) event.preventDefault(); // Sayfanın yenilenmesini engelle
+        
+        if (!fiyatAyarlari) {
+            alert("Sunucudan veriler henüz yüklenmedi, lütfen biraz bekleyip tekrar deneyin.");
+            return;
+        }
+
+        // Formdaki inputlardan kullanıcının girdiği değerleri alıyoruz
+        const gram = parseFloat(document.getElementById('gramInput').value) || 0;
+        const saat = parseFloat(document.getElementById('saatInput').value) || 0;
+
+        // API'den Gelen Dinamik Verilerle Matematiksel Formül:
+        const hammaddeMaliyeti = gram * fiyatAyarlari.gramBasiMaliyet;
+        const makineMaliyeti = saat * fiyatAyarlari.saatlikMakineUcreti;
+        
+        const araToplam = hammaddeMaliyeti + makineMaliyeti + fiyatAyarlari.sabitBaslangicUcreti;
+        const nihaiSatisFiyati = araToplam * fiyatAyarlari.karMarji;
+
+        // Sonucu ekrana yazdırıyoruz
+        document.getElementById('fiyatSonuc').innerText = nihaiSatisFiyati.toFixed(2) + " ₺";
+    }
+</script>
+
 </body>
 </html>

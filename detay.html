@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEÜ 2026 Mezuniyet Rozeti | 3D Fabrika</title>
+    <title id="pageTitle">Ürün Detayı | 3D Fabrika</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
@@ -12,23 +12,30 @@
             color: #1F2937;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .btn-primary {
-            background-color: #2563EB;
-            border-color: #2563EB;
-        }
-        .btn-primary:hover {
-            background-color: #4F46E5;
-            border-color: #4F46E5;
-        }
-        .product-image-container {
+        .btn-primary { background-color: #2563EB; border-color: #2563EB; }
+        .btn-primary:hover { background-color: #4F46E5; border-color: #4F46E5; }
+        
+        /* 3D Ekranının bulunacağı alan */
+        #canvas-container {
+            width: 100%;
+            height: 450px;
             background-color: #ffffff;
             border-radius: 12px;
-            padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+        #canvas-container:active { cursor: grabbing; }
+        
+        /* Yükleniyor yazısı */
+        #loading-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #2563EB;
         }
     </style>
 </head>
@@ -44,7 +51,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-                    <li class="nav-item"><a class="nav-link text-primary fw-semibold" href="#">Ürünler</a></li>
+                    <li class="nav-item"><a class="nav-link text-primary fw-semibold" href="index.html#urunler">Ürünler</a></li>
                     <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
                     <li class="nav-item"><a class="nav-link" href="iletisim.html">İletişim</a></li>
                 </ul>
@@ -53,47 +60,166 @@
     </nav>
 
     <!-- Ürün Detay Alanı -->
-    <div class="container my-5">
-        <!-- Breadcrumb (Gezinme Yolu) -->
+    <div class="container my-5" id="mainContent">
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="index.html" class="text-decoration-none">Ana Sayfa</a></li>
                 <li class="breadcrumb-item"><a href="index.html#urunler" class="text-decoration-none">Ürünler</a></li>
-                <li class="breadcrumb-item active" aria-current="page">NEÜ 2026 Mezuniyet Rozeti</li>
+                <li class="breadcrumb-item active" aria-current="page" id="breadcrumbIsim">Yükleniyor...</li>
             </ol>
         </nav>
 
         <div class="row g-5">
-            <!-- Sol Taraf: Görsel / 3D Ekranı -->
+            <!-- Sol Taraf: 3D THREE.JS EKRANI -->
             <div class="col-lg-7">
-                <div class="product-image-container">
-                    <!-- FAZ 2 NOTU: Three.js Canvas (3D görüntüleyici) tam olarak buradaki img etiketinin yerini alacak -->
-                    <img src="https://via.placeholder.com/600x400?text=3D+Model+Onizleme+Alani" class="img-fluid rounded" alt="Rozet Görseli">
+                <div id="canvas-container">
+                    <div id="loading-text">3D Model Yükleniyor...</div>
                 </div>
+                <p class="text-muted small text-center mt-2">🖱️ Modeli döndürmek için basılı tutun, yakınlaştırmak için tekerleği kullanın.</p>
             </div>
 
             <!-- Sağ Taraf: Ürün Bilgileri -->
             <div class="col-lg-5">
-                <h2 class="fw-bold mb-3">NEÜ 2026 Mezuniyet Rozeti</h2>
-                <h3 class="text-primary fw-bold mb-4">85 ₺</h3>
-                
-                <p class="text-muted mb-4">
-                    Necmettin Erbakan Üniversitesi 2026 mezunlarına özel tasarlanmış, yaka ve çantalarda kullanıma uygun 3D baskı hatıra rozeti. Yüksek kalite PLA malzeme ile üretilmiş olup çift renk seçeneği mevcuttur.
+                <h2 id="urunIsim" class="fw-bold mb-3">Yükleniyor...</h2>
+                <h3 id="urunFiyat" class="text-primary fw-bold mb-4">- ₺</h3>
+                <p id="urunAciklama" class="text-muted mb-4">
+                    Ürün detayları veri tabanından getiriliyor, lütfen bekleyin...
                 </p>
-
                 <ul class="list-group list-group-flush mb-4 bg-transparent">
-                    <li class="list-group-item bg-transparent px-0"><strong>Malzeme:</strong> PLA+ (Doğa Dostu)</li>
-                    <li class="list-group-item bg-transparent px-0"><strong>Boyutlar:</strong> 40mm x 40mm x 3mm</li>
-                    <li class="list-group-item bg-transparent px-0"><strong>Stok Durumu:</strong> Siparişe Özel Üretim</li>
+                    <li class="list-group-item bg-transparent px-0"><strong>Malzeme:</strong> <span id="urunMalzeme">-</span></li>
+                    <li class="list-group-item bg-transparent px-0"><strong>Boyutlar:</strong> <span id="urunBoyutlar">-</span></li>
+                    <li class="list-group-item bg-transparent px-0"><strong>Stok Durumu:</strong> <span id="urunStok">-</span></li>
                 </ul>
-
                 <div class="d-grid gap-2">
-                    <a href="iletisim.html?urun=neu-rozet" class="btn btn-primary btn-lg fw-bold">Sipariş Ver</a>
+                    <a href="iletisim.html" id="siparisButonu" class="btn btn-primary btn-lg fw-bold">Sipariş Ver</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Three.js ve Gerekli Eklentileri -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+
+    <!-- Dinamik Veri Çekme ve 3D Sahne Kurulumu -->
+    <script>
+        // --- 1. THREE.JS TEMEL SAHNE KURULUMU ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf8f9fa);
+
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+        scene.add(ambientLight);
+        
+        const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight1.position.set(10, 20, 10);
+        scene.add(dirLight1);
+
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+        dirLight2.position.set(-10, -20, -10);
+        scene.add(dirLight2);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // --- 2. VERİ TABANINDAN ÜRÜN BİLGİLERİNİ ÇEKME ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urunId = urlParams.get('id');
+
+            if (!urunId) {
+                document.getElementById('mainContent').innerHTML = "<h2 class='text-center mt-5 text-danger'>Ürün bulunamadı! Lütfen ana sayfadan bir ürün seçin.</h2>";
+                return;
+            }
+
+            try {
+                // API'ye İstek Atıyoruz
+                const response = await fetch(`http://localhost:5000/api/urunler/${urunId}`);
+                
+                if(!response.ok) throw new Error("Ürün bulunamadı");
+                
+                const urun = await response.json();
+
+                // HTML'i Dinamik Olarak Dolduruyoruz
+                document.getElementById('pageTitle').innerText = urun.isim + " | 3D Fabrika";
+                document.getElementById('breadcrumbIsim').innerText = urun.isim;
+                document.getElementById('urunIsim').innerText = urun.isim;
+                document.getElementById('urunFiyat').innerText = urun.fiyat + " ₺";
+                document.getElementById('urunAciklama').innerText = urun.aciklama;
+                document.getElementById('urunMalzeme').innerText = urun.malzeme;
+                document.getElementById('urunBoyutlar').innerText = urun.boyutlar;
+                document.getElementById('urunStok').innerText = urun.stokDurumu;
+                
+                // Sipariş butonuna ürün bilgisini ekle
+                document.getElementById('siparisButonu').href = `iletisim.html?urun=${encodeURIComponent(urun.isim)}`;
+
+                // Ürün verileri geldikten sonra STL dosyasını yükle
+                stlYukle(urun.stlDosyaYolu);
+
+            } catch (error) {
+                console.error("Hata:", error);
+                document.getElementById('mainContent').innerHTML = "<h2 class='text-center mt-5 text-danger'>Ürün bilgileri yüklenirken bir hata oluştu!</h2>";
+            }
+        });
+
+        // --- 3. DİNAMİK STL YÜKLEME FONKSİYONU ---
+        function stlYukle(dosyaYolu) {
+            const loader = new THREE.STLLoader();
+            
+            loader.load(dosyaYolu, function (geometry) {
+                document.getElementById('loading-text').style.display = 'none';
+
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x2563EB, 
+                    specular: 0x111111, 
+                    shininess: 50 
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                geometry.computeBoundingBox();
+                const centerOffset = -0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+                mesh.position.y = centerOffset;
+                
+                const maxDim = Math.max(
+                    geometry.boundingBox.max.x - geometry.boundingBox.min.x,
+                    geometry.boundingBox.max.y - geometry.boundingBox.min.y,
+                    geometry.boundingBox.max.z - geometry.boundingBox.min.z
+                );
+                camera.position.z = maxDim * 2;
+                camera.position.y = maxDim * 0.5;
+
+                scene.add(mesh);
+
+            }, undefined, function (error) {
+                document.getElementById('loading-text').innerText = "Model bulunamadı veya yüklenemedi!";
+                document.getElementById('loading-text').classList.add('text-danger');
+                console.error("STL Yükleme Hatası:", error);
+            });
+        }
+
+        // --- 4. ANİMASYON VE YENİDEN BOYUTLANDIRMA ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', function() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
 </body>
 </html>

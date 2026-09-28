@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İletişim & Sipariş | 3D Fabrika</title>
+    <title>İletişim ve Sipariş | 3D Fabrika</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
@@ -12,19 +12,8 @@
             color: #1F2937;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .btn-primary {
-            background-color: #2563EB;
-            border-color: #2563EB;
-        }
-        .btn-primary:hover {
-            background-color: #4F46E5;
-            border-color: #4F46E5;
-        }
-        .contact-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+        .btn-primary { background-color: #2563EB; border-color: #2563EB; }
+        .btn-primary:hover { background-color: #4F46E5; border-color: #4F46E5; }
     </style>
 </head>
 <body>
@@ -41,79 +30,172 @@
                     <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
                     <li class="nav-item"><a class="nav-link" href="index.html#urunler">Ürünler</a></li>
                     <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-                    <li class="nav-item"><a class="nav-link active text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
+                    <li class="nav-item"><a class="nav-link text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- İletişim Bölümü -->
+    <!-- Form Alanı -->
     <div class="container my-5">
-        <div class="row justify-content-center g-5">
-            
-            <!-- Sol Taraf: İletişim Bilgileri -->
-            <div class="col-lg-4">
-                <h2 class="fw-bold mb-4">Bize Ulaşın</h2>
-                <p class="text-muted mb-5">Özel baskı talepleriniz, fiyatlandırma veya stoktaki ürünlerimiz için aşağıdaki formu doldurarak iletişime geçebilirsiniz.</p>
-                
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-white p-3 rounded shadow-sm text-primary me-3 fw-bold fs-5">@</div>
-                    <div>
-                        <h6 class="fw-bold mb-0">E-Posta</h6>
-                        <span class="text-muted">iletisim@3dfabrika.com</span>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-white p-3 rounded shadow-sm text-primary me-3 fw-bold fs-5">📍</div>
-                    <div>
-                        <h6 class="fw-bold mb-0">Lokasyon</h6>
-                        <span class="text-muted">Konya, Türkiye <br> (Elden teslimat imkanı mevcuttur)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sağ Taraf: İletişim Formu -->
-            <div class="col-lg-7">
-                <div class="card contact-card p-4 p-md-5 bg-white">
-                    <!-- Faz 4'te bu formu EmailJS veya Backend ile çalışır hale getireceğiz -->
-                    <form id="iletisimFormu" onsubmit="event.preventDefault(); alert('Mesajınız başarıyla alındı. (Test mesajıdır, Faz 4\'te aktifleşecektir)');">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-5">
+                        <h2 class="fw-bold mb-4 text-primary text-center">Sipariş ve İletişim Formu</h2>
+                        
+                        <form id="siparisFormu">
+                            <div class="mb-3">
                                 <label class="form-label fw-semibold">Adınız Soyadınız</label>
-                                <input type="text" class="form-control" required placeholder="Adınız">
+                                <input type="text" class="form-control" id="musteriAd" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">E-Posta Adresiniz</label>
-                                <input type="email" class="form-control" required placeholder="ornek@mail.com">
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">E-posta Adresiniz</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Telefon Numaranız</label>
+                                    <input type="tel" class="form-control" id="telefon">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Konu / Sipariş Edilecek Ürün</label>
-                            <input type="text" class="form-control" required placeholder="Örn: Fiyat Hesaplama Sonucu Siparişi">
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">İlgilendiğiniz Ürün</label>
+                                <select class="form-select" id="ilgilenilenUrun">
+                                    <option value="Özel Tasarım / Diğer">Özel Tasarım / Diğer (Dosya Yükleyeceğim)</option>
+                                    <!-- Veri tabanındaki ürünler buraya JS ile eklenecek -->
+                                </select>
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Mesajınız & Detaylar</label>
-                            <textarea class="form-control" rows="4" required placeholder="Baskı ile ilgili renk, boyut veya diğer özel isteklerinizi belirtebilirsiniz..."></textarea>
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Mesajınız / Özel İstekleriniz</label>
+                                <textarea class="form-control" id="mesaj" rows="4" placeholder="Renk tercihi, boyut isteği veya proje detaylarınızı yazabilirsiniz..." required></textarea>
+                            </div>
 
-                        <!-- Fotoğraf Yükleme Alanı -->
-                        <div class="mb-4 p-3 bg-light rounded border">
-                            <label class="form-label fw-semibold text-primary">Görsel Yükle (Opsiyonel)</label>
-                            <p class="small text-muted mb-2">Bastırmak istediğiniz modelin referans fotoğrafını (.jpg, .png) yükleyebilirsiniz.</p>
-                            <input class="form-control form-control-sm" type="file" accept=".jpg, .jpeg, .png">
-                        </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Referans Görsel veya 3D Model (İsteğe Bağlı)</label>
+                                <input class="form-control" type="file" id="dosyaYukle">
+                                <div class="form-text">Maksimum 10MB. JPG, PNG veya STL formatları desteklenir.</div>
+                            </div>
 
-                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">Mesajı Gönder</button>
-                    </form>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold py-2" id="gonderButonu">Siparişi Gönder</button>
+                        </form>
+
+                        <!-- Kullanıcıya gösterilecek işlem durumu mesajları -->
+                        <div id="sonucMesaji" class="mt-4 text-center fw-bold fs-5"></div>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urunSelect = document.getElementById('ilgilenilenUrun');
+            
+            // 1. Veri tabanındaki ürünleri çekip "İlgilendiğiniz Ürün" listesine ekle
+            try {
+                const response = await fetch('http://localhost:5000/api/urunler');
+                const urunler = await response.json();
+                
+                urunler.forEach(urun => {
+                    const option = document.createElement('option');
+                    option.value = urun.isim;
+                    option.textContent = urun.isim;
+                    urunSelect.appendChild(option);
+                });
+
+                // 2. URL'de parametre varsa (Örn: iletisim.html?urun=Yelpaze), listede onu otomatik seç
+                const urlParams = new URLSearchParams(window.location.search);
+                const gelenUrun = urlParams.get('urun');
+                if (gelenUrun) {
+                    urunSelect.value = gelenUrun;
+                }
+            } catch (error) {
+                console.error("Ürünler form listesine yüklenemedi:", error);
+            }
+        });
+
+        // Form Gönderme İşlemi
+        document.getElementById('siparisFormu').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Sayfa yenilenmesini engelle
+            
+            const gonderButonu = document.getElementById('gonderButonu');
+            const sonucMesaji = document.getElementById('sonucMesaji');
+            const dosyaInput = document.getElementById('dosyaYukle');
+            
+            // İşlem sürerken butonu kilitle
+            gonderButonu.disabled = true;
+            gonderButonu.innerText = "İşlemler Yapılıyor... Lütfen Bekleyin";
+            sonucMesaji.className = "mt-4 text-center fw-bold text-primary";
+            sonucMesaji.innerText = "Hazırlanıyor...";
+
+            let cloudDosyaUrl = "";
+
+            try {
+                // ADIM 1: Eğer kullanıcı dosya seçmişse, Node.js'i aradan çıkarıp doğrudan Cloudinary'ye gönder
+                if (dosyaInput.files.length > 0) {
+                    sonucMesaji.innerText = "Dosya buluta yükleniyor... ⏳";
+                    
+                    const formData = new FormData();
+                    formData.append('file', dosyaInput.files[0]);
+                    formData.append('upload_preset', 'siparis_gorselleri'); // Senin belirlediğin isim
+
+                    // Senin Cloud Name bilginle istek atıyoruz (km6ul35l)
+                    const cloudRes = await fetch('https://api.cloudinary.com/v1_1/km6ul35l/auto/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const cloudData = await cloudRes.json();
+                    if (cloudData.secure_url) {
+                        cloudDosyaUrl = cloudData.secure_url; // Oluşan güvenli URL'yi al
+                    } else {
+                        throw new Error("Cloudinary yüklemesi reddedildi.");
+                    }
+                }
+
+                // ADIM 2: Form metinlerini ve (eğer varsa) Cloudinary URL'sini bizim Node.js sunucumuza gönder
+                sonucMesaji.innerText = "Siparişiniz veri tabanına kaydediliyor... 💾";
+                
+                const siparisVerisi = {
+                    musteriAd: document.getElementById('musteriAd').value,
+                    email: document.getElementById('email').value,
+                    telefon: document.getElementById('telefon').value,
+                    ilgilenilenUrun: document.getElementById('ilgilenilenUrun').value,
+                    mesaj: document.getElementById('mesaj').value,
+                    dosyaUrl: cloudDosyaUrl // URL'yi MongoDB şemasına yolluyoruz
+                };
+
+                const backendRes = await fetch('http://localhost:5000/api/siparisler', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(siparisVerisi)
+                });
+
+                if (backendRes.ok) {
+                    // İşlem tamamen bittiğinde
+                    sonucMesaji.className = "mt-4 text-center fw-bold text-success";
+                    sonucMesaji.innerText = "🎉 Siparişiniz başarıyla alındı! Detaylar için sizinle iletişime geçeceğiz.";
+                    document.getElementById('siparisFormu').reset(); // Formu temizle
+                } else {
+                    throw new Error("MongoDB kaydı sırasında sunucu hatası.");
+                }
+
+            } catch (error) {
+                console.error(error);
+                sonucMesaji.className = "mt-4 text-center fw-bold text-danger";
+                sonucMesaji.innerText = "❌ Bir hata oluştu: " + error.message;
+            } finally {
+                // Butonu eski haline getir
+                gonderButonu.disabled = false;
+                gonderButonu.innerText = "Siparişi Gönder";
+            }
+        });
+    </script>
 </body>
 </html>
