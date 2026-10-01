@@ -135,7 +135,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Node.js sunucumuzun adresine bağlanıyoruz
-            const response = await fetch('http://localhost:5000/api/fiyat-ayarlari');
+            const response = await fetch('https://website3d-93zb.onrender.com/api/fiyat-ayarlari');
             fiyatAyarlari = await response.json();
             console.log("✅ Sunucudan ayarlar başarıyla çekildi:", fiyatAyarlari);
         } catch (error) {

@@ -129,9 +129,10 @@ app.get('/api/urunler/:id', async (req, res) => {
     }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`🚀 Sunucu http://localhost:${PORT} adresinde yakalandı!`);
+    console.log(`🚀 Sunucu ${PORT} portunda çalışıyor!`);
 });
 
 // Yeni Ürün Ekleme Rotası (POST)
