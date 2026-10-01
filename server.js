@@ -10,6 +10,13 @@ app.use(express.json());
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
+if (MONGODB_URI) {
+    // Şifreni *** ile gizleyerek Render'ın hangi linki okuduğunu ekrana yazdırır
+    const guvenliLink = MONGODB_URI.replace(/:([^:@]+)@/, ':***@');
+    console.log("👉 Render'ın okuduğu MONGODB_URI:", guvenliLink);
+} else {
+    console.log("❌ HATA: MONGODB_URI değişkeni Render'da BULUNAMADI (Boş dönüyor)!");
+}
 mongoose.connect(MONGODB_URI, { family: 4 })
     .then(() => {
         console.log("✅ MongoDB Veri Tabanına Başarıyla Bağlanıldı!");
