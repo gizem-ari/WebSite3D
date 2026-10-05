@@ -20,7 +20,10 @@ mongoose.connect(MONGODB_URI, { family: 4 })
     })
     .catch((err) => console.log("❌ MongoDB Bağlantı Hatası: ", err));
 
-// --- 1. MONGOOSE ŞEMALARI (Veri Tablosu Yapıları) ---
+
+// ==========================================
+// 1. MONGOOSE ŞEMALARI (Veri Tablosu Yapıları)
+// ==========================================
 
 // Fiyatlandırma Ayarları Şeması
 const ayarSema = new mongoose.Schema({
@@ -43,9 +46,24 @@ const urunSema = new mongoose.Schema({
 });
 const Urun = mongoose.model('Urun', urunSema);
 
-// --- 2. ÖRNEK VERİLERİ DOLDURMA FONKSİYONU ---
+// Sipariş Şeması (Admin paneliyle uyumlu hale getirildi)
+const siparisSema = new mongoose.Schema({
+    isim: String,         // musteriAd yerine isim yapıldı
+    email: String,
+    telefon: String,
+    dosyaAdi: String,     // Hangi modeli istediği
+    dosyaUrl: String,     // Özel dosya yüklediyse Cloudinary linki
+    fiyat: Number,        // Hesaplanıp müşteriye gösterilen fiyat
+    mesaj: String,
+    durum: { type: String, default: "Bekliyor" }
+}, { timestamps: true }); // createdAt (oluşturulma tarihi) bilgisini otomatik ekler
+const Siparis = mongoose.model('Siparis', siparisSema);
+
+
+// ==========================================
+// 2. ÖRNEK VERİLERİ DOLDURMA FONKSİYONU
+// ==========================================
 async function verileriOlustur() {
-    // Ayarlar koleksiyonu boş mu diye kontrol et
     const ayarSayisi = await Ayar.countDocuments();
     if (ayarSayisi === 0) {
         await Ayar.create({
@@ -57,7 +75,6 @@ async function verileriOlustur() {
         console.log("📥 Örnek Fiyat Ayarları veri tabanına eklendi.");
     }
 
-    // Ürünler koleksiyonu boş mu diye kontrol et
     const urunSayisi = await Urun.countDocuments();
     if (urunSayisi === 0) {
         await Urun.create([
@@ -79,110 +96,146 @@ async function verileriOlustur() {
                 stokDurumu: "Stokta Var",
                 stlDosyaYolu: "models/ejderha.stl"
             }
-            
         ]);
         console.log("📥 Örnek Ürünler veri tabanına eklendi.");
     }
 }
 
-// --- 3. API ROTALARI (Frontend ile iletişim) ---
+
+// ==========================================
+// 3. API ROTALARI (Frontend ile iletişim)
+// ==========================================
 
 app.get('/', (req, res) => {
     res.send("3D Fabrika API Sunucusu Çalışıyor 🚀");
 });
 
-// Fiyatlandırma Parametrelerini MongoDB'den Çeken Rota
+// --- FİYAT AYARLARI API'LERİ ---
 app.get('/api/fiyat-ayarlari', async (req, res) => {
     try {
-        const ayarlar = await Ayar.findOne(); // İlk ayar dokümanını bulur
+        const ayarlar = await Ayar.findOne(); 
         res.json(ayarlar);
     } catch (error) {
         res.status(500).json({ mesaj: "Veri tabanından ayarlar çekilemedi." });
     }
 });
 
-// Tüm Ürünleri MongoDB'den Çeken Rota
+app.post('/api/fiyat-ayarlari/guncelle', async (req, res) => {
+    try {
+        const { gramBasiMaliyet, saatlikMakineUcreti, sabitBaslangicUcreti, karMarji } = req.body;
+        let ayarlar = await Ayar.findOne();
+        
+        if (!ayarlar) {
+            ayarlar = new Ayar({ gramBasiMaliyet, saatlikMakineUcreti, sabitBaslangicUcreti, karMarji });
+        } else {
+            ayarlar.gramBasiMaliyet = gramBasiMaliyet;
+            ayarlar.saatlikMakineUcreti = saatlikMakineUcreti;
+            ayarlar.sabitBaslangicUcreti = sabitBaslangicUcreti;
+            ayarlar.karMarji = karMarji;
+        }
+        
+        await ayarlar.save();
+        res.status(200).json({ mesaj: "Fiyat ayarları başarıyla güncellendi!" });
+    } catch (error) {
+        console.error("Ayar güncelleme hatası:", error);
+        res.status(500).json({ mesaj: "Ayarlar güncellenirken sunucu hatası oluştu." });
+    }
+});
+
+// --- ÜRÜN API'LERİ ---
 app.get('/api/urunler', async (req, res) => {
     try {
-        const urunler = await Urun.find(); // Tüm ürünleri liste olarak bulur
+        const urunler = await Urun.find(); 
         res.json(urunler);
     } catch (error) {
-        // İŞTE BURASI: Hatanın asıl sebebini terminale yazdıracak kısım
         console.error("❌ MongoDB GET Okuma Hatası:", error);
         res.status(500).json({ mesaj: "Veri tabanından ürünler çekilemedi.", detay: error.message });
     }
 });
-// Tek Bir Ürünün Detaylarını Çeken Rota
+
 app.get('/api/urunler/:id', async (req, res) => {
     try {
-        const urun = await Urun.findById(req.params.id); // URL'den gelen ID ile veri tabanında arar
-        if (!urun) {
-            return res.status(404).json({ mesaj: "Ürün bulunamadı." });
-        }
+        const urun = await Urun.findById(req.params.id); 
+        if (!urun) return res.status(404).json({ mesaj: "Ürün bulunamadı." });
         res.json(urun);
     } catch (error) {
         res.status(500).json({ mesaj: "Ürün detayları getirilirken hata oluştu." });
     }
 });
 
-const PORT = process.env.PORT || 5000;
+app.post('/api/urunler', async (req, res) => {
+    try {
+        const yeniUrun = await Urun.create(req.body);
+        res.status(201).json({ mesaj: "✅ Yeni ürün başarıyla eklendi!", urun: yeniUrun });
+    } catch (error) {
+        res.status(500).json({ mesaj: "❌ Ürün eklenirken hata oluştu.", hata: error.message });
+    }
+});
 
-// KİMLİK DOĞRULAMA (KAYIT VE GİRİŞ) API'LERİ
-// ==========================================
+// --- SİPARİŞ API'LERİ ---
+app.get('/api/siparisler', async (req, res) => {
+    try {
+        const siparisler = await Siparis.find().sort({ createdAt: -1 }); 
+        res.status(200).json(siparisler);
+    } catch (error) {
+        console.error("Siparişler çekilirken hata:", error);
+        res.status(500).json({ mesaj: "Siparişler getirilemedi." });
+    }
+});
 
-// --- 1. KAYIT OL API ---
+app.post('/api/siparisler', async (req, res) => {
+    try {
+        const yeniSiparis = await Siparis.create(req.body);
+        res.status(201).json({ mesaj: "✅ Siparişiniz başarıyla alındı!", siparisId: yeniSiparis._id });
+    } catch (error) {
+        console.error("❌ Sipariş Kayıt Hatası:", error); 
+        res.status(500).json({ mesaj: "Sipariş kaydedilirken bir hata oluştu.", detay: error.message });
+    }
+});
+
+app.put('/api/siparisler/:id/durum', async (req, res) => {
+    try {
+        const { durum } = req.body;
+        await Siparis.findByIdAndUpdate(req.params.id, { durum });
+        res.status(200).json({ mesaj: "Sipariş durumu güncellendi!" });
+    } catch (error) {
+        res.status(500).json({ mesaj: "Durum güncellenemedi." });
+    }
+});
+
+// --- KİMLİK DOĞRULAMA (AUTH) API'LERİ ---
 app.post('/api/auth/kayit', async (req, res) => {
     try {
         const { isim, email, sifre } = req.body;
-
-        // E-posta sistemde zaten var mı kontrol et
         const eskiKullanici = await Kullanici.findOne({ email });
-        if (eskiKullanici) {
-            return res.status(400).json({ mesaj: "Bu e-posta adresi zaten kullanımda." });
-        }
+        if (eskiKullanici) return res.status(400).json({ mesaj: "Bu e-posta adresi zaten kullanımda." });
 
-        // Şifreyi güvenli hale getir (Kriptola/Hashle)
         const salt = await bcrypt.genSalt(10);
         const sifrelenmisSifre = await bcrypt.hash(sifre, salt);
 
-        // Yeni kullanıcıyı oluştur ve Atlas'a kaydet
-        const yeniKullanici = new Kullanici({
-            isim,
-            email,
-            sifre: sifrelenmisSifre
-        });
+        const yeniKullanici = new Kullanici({ isim, email, sifre: sifrelenmisSifre });
         await yeniKullanici.save();
 
         res.status(201).json({ mesaj: "Kayıt işlemi başarıyla tamamlandı!" });
-
     } catch (error) {
         console.error("Kayıt hatası:", error);
         res.status(500).json({ mesaj: "Kayıt sırasında sunucu hatası oluştu." });
     }
 });
 
-// --- 2. GİRİŞ YAP API ---
 app.post('/api/auth/giris', async (req, res) => {
     try {
         const { email, sifre } = req.body;
-
-        // Kullanıcıyı veri tabanında bul
         const kullanici = await Kullanici.findOne({ email });
-        if (!kullanici) {
-            return res.status(400).json({ mesaj: "Böyle bir kullanıcı bulunamadı." });
-        }
+        if (!kullanici) return res.status(400).json({ mesaj: "Böyle bir kullanıcı bulunamadı." });
 
-        // Girilen şifre ile veri tabanındaki kriptolu şifreyi karşılaştır
         const sifreDogruMu = await bcrypt.compare(sifre, kullanici.sifre);
-        if (!sifreDogruMu) {
-            return res.status(400).json({ mesaj: "Hatalı şifre girdiniz." });
-        }
+        if (!sifreDogruMu) return res.status(400).json({ mesaj: "Hatalı şifre girdiniz." });
 
-        // Şifre doğruysa, kullanıcıya özel dijital bilet (Token) üret
         const token = jwt.sign(
             { id: kullanici._id, rol: kullanici.rol },
-            "GIZLI_ANAHTAR_3D_FABRIKA", // Güvenlik anahtarımız
-            { expiresIn: '1d' } // Biletin geçerlilik süresi: 1 Gün
+            "GIZLI_ANAHTAR_3D_FABRIKA", 
+            { expiresIn: '1d' } 
         );
 
         res.status(200).json({ 
@@ -190,59 +243,17 @@ app.post('/api/auth/giris', async (req, res) => {
             token: token,
             kullanici: { isim: kullanici.isim, email: kullanici.email, rol: kullanici.rol }
         });
-
     } catch (error) {
         console.error("Giriş hatası:", error);
         res.status(500).json({ mesaj: "Giriş sırasında sunucu hatası oluştu." });
     }
 });
 
+
+// ==========================================
+// 4. SUNUCUYU BAŞLATMA (Her Zaman En Altta Olmalı)
+// ==========================================
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Sunucu ${PORT} portunda çalışıyor!`);
-});
-
-// Yeni Ürün Ekleme Rotası (POST)
-// İleride Postman ile veya HTML formundan veri göndererek ürün eklemek için kullanılır
-app.post('/api/urunler', async (req, res) => {
-    try {
-        // req.body, formdan veya istekten gelen ürün verilerini içerir
-        const yeniUrun = await Urun.create(req.body);
-        res.status(201).json({ 
-            mesaj: "✅ Yeni ürün başarıyla eklendi!", 
-            urun: yeniUrun 
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            mesaj: "❌ Ürün eklenirken hata oluştu.", 
-            hata: error.message 
-        });
-    }
-});
-
-// --- SİPARİŞ ŞEMASI ---
-const siparisSema = new mongoose.Schema({
-    musteriAd: String,
-    email: String,
-    telefon: String,
-    ilgilenilenUrun: String,
-    mesaj: String,
-    dosyaUrl: String, // Cloudinary'den gelecek görsel/dosya linki
-    durum: { type: String, default: "Bekliyor" }, // Varsayılan durum
-    tarih: { type: Date, default: Date.now }
-});
-const Siparis = mongoose.model('Siparis', siparisSema);
-
-
-// --- YENİ SİPARİŞ EKLEME ROTASI (POST) ---
-app.post('/api/siparisler', async (req, res) => {
-    try {
-        const yeniSiparis = await Siparis.create(req.body);
-        res.status(201).json({ 
-            mesaj: "✅ Siparişiniz başarıyla alındı!", 
-            siparisId: yeniSiparis._id 
-        });
-    } catch (error) {
-        console.error("❌ Sipariş Kayıt Hatası:", error); 
-        res.status(500).json({ mesaj: "Sipariş kaydedilirken bir hata oluştu.", detay: error.message });
-    }
 });

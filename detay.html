@@ -220,6 +220,47 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
         });
     </script>
+
+     <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        const kullaniciStr = localStorage.getItem('kullanici');
+        const navbarUl = document.querySelector('#navbarNav ul');
+
+        if (token && kullaniciStr) {
+        // 1. DURUM: KULLANICI GİRİŞ YAPMIŞSA (Dropdown Menü Tasarımı)
+        const kullanici = JSON.parse(kullaniciStr);
+        navbarUl.innerHTML = `
+            <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+            <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    👤 Merhaba, ${kullanici.isim}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                    ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
+                    <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
+                </ul>
+            </li>
+        `;
+    } else {
+            // 2. DURUM: KULLANICI GİRİŞ YAPMAMIŞSA (Ziyaretçi)
+            navbarUl.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
+                <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
+            `;
+        }
+    });
+
+    // Çıkış yapma fonksiyonu
+    function cikisYap() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('kullanici');
+        window.location.href = 'index.html'; // Çıkış yapınca ana sayfaya yönlendir
+    }
+</script>
 </body>
 </html>
 

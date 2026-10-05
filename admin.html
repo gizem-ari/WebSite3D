@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli | 3D Fabrika</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Güvenlik Kontrolü -->
+    <script>
+        const kullaniciData = localStorage.getItem('kullanici');
+        if (!kullaniciData) {
+            window.location.href = 'giris.html';
+        } else {
+            const kullanici = JSON.parse(kullaniciData);
+            if (kullanici.rol !== 'admin') {
+                alert("⛔ Bu sayfaya erişim yetkiniz bulunmamaktadır!");
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+
+    <!-- Admin Özel Menüsü -->
+    <nav class="navbar navbar-dark bg-dark shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="admin.html">⚙️ 3D Fabrika Yönetim</a>
+            <a class="btn btn-outline-light btn-sm" href="index.html">Siteye Dön</a>
+        </div>
+    </nav>
+
+    <!-- Yönetim Modülleri -->
+    <div class="container my-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="fw-bold">Yönetim Paneli</h2>
+                <p class="text-muted">Siparişleri, ürünleri ve fiyat ayarlarını buradan yönetebilirsiniz.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Siparişler Modülü -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-4 mb-3">📦</h1>
+                        <h5 class="fw-bold text-primary">Sipariş Yönetimi</h5>
+                        <p class="text-muted small">Gelen baskı taleplerini ve üretim durumlarını takip edin.</p>
+                        <!-- BUTON BURAYA, KARTIN İÇİNE TAŞINDI -->
+                        <button class="btn btn-primary w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#siparisModal" onclick="siparisleriGetir()">Siparişleri Görüntüle</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dinamik Fiyatlandırma Modülü -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-4 mb-3">₺</h1>
+                        <h5 class="fw-bold text-success">Fiyat Ayarları</h5>
+                        <p class="text-muted small">Saatlik ücret, gramaj ve kar marjı çarpanlarını güncelleyin.</p>
+                        <button class="btn btn-success w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#fiyatAyarlariModal">Ayarları Değiştir</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vitrin/Ürün Modülü -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-4 mb-3">🛠️</h1>
+                        <h5 class="fw-bold text-warning">Vitrin Yönetimi</h5>
+                        <p class="text-muted small">Ana sayfadaki hazır 3D modelleri ekleyin veya düzenleyin.</p>
+                        <button class="btn btn-warning w-100 text-dark fw-bold">Ürünleri Yönet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fiyat Ayarları Açılır Penceresi (Modal) -->
+    <div class="modal fade" id="fiyatAyarlariModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">₺ Fiyatlandırma Ayarları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="ayarFormu">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Gram Başı Maliyet (₺)</label>
+                            <input type="number" step="0.01" class="form-control fw-bold" id="ayarGram" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Saatlik Makine Ücreti (₺)</label>
+                            <input type="number" step="0.01" class="form-control fw-bold" id="ayarSaat" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Sabit Başlangıç Ücreti (₺)</label>
+                            <input type="number" step="0.01" class="form-control fw-bold" id="ayarSabit" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Kar Marjı Çarpanı (Örn: 2.5)</label>
+                            <input type="number" step="0.01" class="form-control fw-bold text-success" id="ayarKar" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold py-2" id="ayarKaydetBtn">Değişiklikleri Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sipariş Yönetimi Açılır Penceresi (Modal) -->
+    <div class="modal fade" id="siparisModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">📦 Gelen Siparişler</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Müşteri</th>
+                                    <th>Model Detayı</th>
+                                    <th>Tutar</th>
+                                    <th>Durum</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="siparisTablosu">
+                                <tr><td colspan="6" class="text-center py-4">Siparişler yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap ve API Bağlantı Kodları -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fiyat ayarlarını çek
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('https://website3d-93zb.onrender.com/api/fiyat-ayarlari');
+                const ayarlar = await response.json();
+                
+                document.getElementById('ayarGram').value = ayarlar.gramBasiMaliyet;
+                document.getElementById('ayarSaat').value = ayarlar.saatlikMakineUcreti;
+                document.getElementById('ayarSabit').value = ayarlar.sabitBaslangicUcreti;
+                document.getElementById('ayarKar').value = ayarlar.karMarji;
+            } catch (error) {
+                console.error("Mevcut ayarlar çekilemedi:", error);
+            }
+        });
+
+        // Fiyat ayarlarını güncelle
+        document.getElementById('ayarFormu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('ayarKaydetBtn');
+            btn.innerText = 'Veritabanına Kaydediliyor...';
+            btn.disabled = true;
+
+            const yeniAyarlar = {
+                gramBasiMaliyet: parseFloat(document.getElementById('ayarGram').value),
+                saatlikMakineUcreti: parseFloat(document.getElementById('ayarSaat').value),
+                sabitBaslangicUcreti: parseFloat(document.getElementById('ayarSabit').value),
+                karMarji: parseFloat(document.getElementById('ayarKar').value)
+            };
+
+            try {
+                const response = await fetch('https://website3d-93zb.onrender.com/api/fiyat-ayarlari/guncelle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(yeniAyarlar)
+                });
+                
+                if (response.ok) {
+                    alert("✅ Fiyat ayarları MongoDB'ye başarıyla kaydedildi!");
+                    window.location.reload(); 
+                }
+            } catch (error) {
+                alert("❌ Sunucuya bağlanırken bir hata oluştu.");
+            } finally {
+                btn.innerText = 'Değişiklikleri Kaydet';
+                btn.disabled = false;
+            }
+        });
+
+        // Siparişleri çek ve tabloya bas
+        async function siparisleriGetir() {
+            const tablo = document.getElementById('siparisTablosu');
+            tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4">Siparişler yükleniyor...</td></tr>';
+
+            try {
+                const response = await fetch('https://website3d-93zb.onrender.com/api/siparisler');
+                const siparisler = await response.json();
+
+                if (siparisler.length === 0) {
+                    tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Henüz hiç sipariş bulunmuyor.</td></tr>';
+                    return;
+                }
+
+                tablo.innerHTML = ''; 
+
+                siparisler.forEach(siparis => {
+                    const tarih = new Date(siparis.createdAt).toLocaleDateString('tr-TR');
+                    
+                    let durumRenk = 'bg-secondary';
+                    if (siparis.durum === 'Bekliyor') durumRenk = 'bg-warning text-dark';
+                    if (siparis.durum === 'Basılıyor') durumRenk = 'bg-info text-dark';
+                    if (siparis.durum === 'Kargolandı') durumRenk = 'bg-success';
+
+                    const satir = `
+                        <tr>
+                            <td><small class="text-muted">${tarih}</small></td>
+                            <td>
+                                <strong>${siparis.isim}</strong><br>
+                                <small class="text-muted">${siparis.email || '-'}</small>
+                            </td>
+                            <td>${siparis.dosyaAdi || 'Özel Talep'}</td>
+                            <td class="fw-bold">${siparis.fiyat ? siparis.fiyat + ' ₺' : '-'}</td>
+                            <td><span class="badge ${durumRenk}">${siparis.durum || 'Bekliyor'}</span></td>
+                            <td>
+                                <select class="form-select form-select-sm" onchange="durumGuncelle('${siparis._id}', this.value)">
+                                    <option value="" disabled selected>Durum Seç</option>
+                                    <option value="Bekliyor">Bekliyor</option>
+                                    <option value="Basılıyor">Basılıyor</option>
+                                    <option value="Kargolandı">Kargolandı</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                    tablo.innerHTML += satir;
+                });
+            } catch (error) {
+                console.error("Siparişler çekilemedi:", error);
+                tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Bağlantı hatası oluştu!</td></tr>';
+            }
+        }
+
+        // Sipariş durumunu güncelle
+        async function durumGuncelle(id, yeniDurum) {
+            try {
+                const response = await fetch(`https://website3d-93zb.onrender.com/api/siparisler/${id}/durum`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ durum: yeniDurum })
+                });
+
+                if (response.ok) {
+                    siparisleriGetir(); 
+                }
+            } catch (error) {
+                alert("Durum güncellenirken bir hata oluştu.");
+            }
+        }
+    </script>
+</body>
+</html>
