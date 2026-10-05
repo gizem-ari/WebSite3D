@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const Kullanici = require('./models/Kullanici');
 
 const app = express();
 
@@ -10,13 +13,6 @@ app.use(express.json());
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (MONGODB_URI) {
-    // Şifreni *** ile gizleyerek Render'ın hangi linki okuduğunu ekrana yazdırır
-    const guvenliLink = MONGODB_URI.replace(/:([^:@]+)@/, ':***@');
-    console.log("👉 Render'ın okuduğu MONGODB_URI:", guvenliLink);
-} else {
-    console.log("❌ HATA: MONGODB_URI değişkeni Render'da BULUNAMADI (Boş dönüyor)!");
-}
 mongoose.connect(MONGODB_URI, { family: 4 })
     .then(() => {
         console.log("✅ MongoDB Veri Tabanına Başarıyla Bağlanıldı!");
@@ -130,6 +126,76 @@ app.get('/api/urunler/:id', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// KİMLİK DOĞRULAMA (KAYIT VE GİRİŞ) API'LERİ
+// ==========================================
+
+// --- 1. KAYIT OL API ---
+app.post('/api/auth/kayit', async (req, res) => {
+    try {
+        const { isim, email, sifre } = req.body;
+
+        // E-posta sistemde zaten var mı kontrol et
+        const eskiKullanici = await Kullanici.findOne({ email });
+        if (eskiKullanici) {
+            return res.status(400).json({ mesaj: "Bu e-posta adresi zaten kullanımda." });
+        }
+
+        // Şifreyi güvenli hale getir (Kriptola/Hashle)
+        const salt = await bcrypt.genSalt(10);
+        const sifrelenmisSifre = await bcrypt.hash(sifre, salt);
+
+        // Yeni kullanıcıyı oluştur ve Atlas'a kaydet
+        const yeniKullanici = new Kullanici({
+            isim,
+            email,
+            sifre: sifrelenmisSifre
+        });
+        await yeniKullanici.save();
+
+        res.status(201).json({ mesaj: "Kayıt işlemi başarıyla tamamlandı!" });
+
+    } catch (error) {
+        console.error("Kayıt hatası:", error);
+        res.status(500).json({ mesaj: "Kayıt sırasında sunucu hatası oluştu." });
+    }
+});
+
+// --- 2. GİRİŞ YAP API ---
+app.post('/api/auth/giris', async (req, res) => {
+    try {
+        const { email, sifre } = req.body;
+
+        // Kullanıcıyı veri tabanında bul
+        const kullanici = await Kullanici.findOne({ email });
+        if (!kullanici) {
+            return res.status(400).json({ mesaj: "Böyle bir kullanıcı bulunamadı." });
+        }
+
+        // Girilen şifre ile veri tabanındaki kriptolu şifreyi karşılaştır
+        const sifreDogruMu = await bcrypt.compare(sifre, kullanici.sifre);
+        if (!sifreDogruMu) {
+            return res.status(400).json({ mesaj: "Hatalı şifre girdiniz." });
+        }
+
+        // Şifre doğruysa, kullanıcıya özel dijital bilet (Token) üret
+        const token = jwt.sign(
+            { id: kullanici._id, rol: kullanici.rol },
+            "GIZLI_ANAHTAR_3D_FABRIKA", // Güvenlik anahtarımız
+            { expiresIn: '1d' } // Biletin geçerlilik süresi: 1 Gün
+        );
+
+        res.status(200).json({ 
+            mesaj: "Giriş başarılı!", 
+            token: token,
+            kullanici: { isim: kullanici.isim, email: kullanici.email, rol: kullanici.rol }
+        });
+
+    } catch (error) {
+        console.error("Giriş hatası:", error);
+        res.status(500).json({ mesaj: "Giriş sırasında sunucu hatası oluştu." });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`🚀 Sunucu ${PORT} portunda çalışıyor!`);
