@@ -3,20 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İletişim ve Sipariş | 3D Fabrika</title>
+    <title>İletişim & Sipariş | 3D Fabrika</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <style>
-        body {
-            background-color: #F3F4F6;
-            color: #1F2937;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .btn-primary { background-color: #2563EB; border-color: #2563EB; }
-        .btn-primary:hover { background-color: #4F46E5; border-color: #4F46E5; }
-    </style>
 </head>
-<body>
+<body class="bg-light">
 
     <!-- Üst Menü -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
@@ -26,216 +16,184 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-                    <li class="nav-item"><a class="nav-link" href="index.html#urunler">Ürünler</a></li>
-                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-                    <li class="nav-item"><a class="nav-link text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
-                </ul>
+                <ul class="navbar-nav ms-auto"></ul>
             </div>
         </div>
     </nav>
 
-    <!-- Form Alanı -->
+    <!-- İletişim / Sipariş Formu -->
     <div class="container my-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-5">
-                        <h2 class="fw-bold mb-4 text-primary text-center">Sipariş ve İletişim Formu</h2>
-                        
-                        <form id="siparisFormu">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Adınız Soyadınız</label>
-                                <input type="text" class="form-control" id="musteriAd" required>
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4">
+                    <h2 class="fw-bold text-center mb-1" id="sayfaBasligi">İletişim & Sipariş</h2>
+                    <p class="text-muted text-center mb-4" id="sayfaAciklamasi">Bizimle iletişime geçin veya sipariş detaylarınızı gönderin.</p>
+                    
+                    <form id="iletisimFormu">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Adınız Soyadınız</label>
+                                <input type="text" id="isimInput" class="form-control fw-bold" required>
                             </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">E-posta Adresiniz</label>
-                                    <input type="email" class="form-control" id="email" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Telefon Numaranız</label>
-                                    <input type="tel" class="form-control" id="telefon">
-                                </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">E-posta Adresiniz</label>
+                                <input type="email" id="emailInput" class="form-control" required>
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">İlgilendiğiniz Ürün</label>
-                                <select class="form-select" id="ilgilenilenUrun">
-                                    <option value="Özel Tasarım / Diğer">Özel Tasarım / Diğer (Dosya Yükleyeceğim)</option>
-                                    <!-- Veri tabanındaki ürünler buraya JS ile eklenecek -->
-                                </select>
-                            </div>
+                        <!-- Akıllı Fiyat Alanı -->
+                        <div class="mb-3" id="fiyatAlani" style="display: none;">
+                            <label class="form-label text-muted small">Sipariş Tutarı</label>
+                            <input type="text" id="fiyatInput" class="form-control fw-bold text-primary bg-light" readonly>
+                        </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Mesajınız / Özel İstekleriniz</label>
-                                <textarea class="form-control" id="mesaj" rows="4" placeholder="Renk tercihi, boyut isteği veya proje detaylarınızı yazabilirsiniz..." required></textarea>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Model Dosyası veya Görsel (.stl, .png, .jpg)</label>
+                            <input type="file" id="dosyaInput" class="form-control border-primary">
+                            <div class="form-text" id="dosyaAciklama">Sorularınız, tasarımlarınız veya özel siparişleriniz için dosya yükleyebilirsiniz.</div>
+                        </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">Referans Görsel veya 3D Model (İsteğe Bağlı)</label>
-                                <input class="form-control" type="file" id="dosyaYukle">
-                                <div class="form-text">Maksimum 10MB. JPG, PNG veya STL formatları desteklenir.</div>
-                            </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Mesajınız / Talepleriniz</label>
+                            <textarea id="mesajInput" class="form-control" rows="4" placeholder="Mesajınızı veya baskı detaylarını (renk, doluluk vb.) buraya yazabilirsiniz..." required></textarea>
+                        </div>
 
-                            <button type="submit" class="btn btn-primary w-100 fw-bold py-2" id="gonderButonu">Siparişi Gönder</button>
-                        </form>
-
-                        <!-- Kullanıcıya gösterilecek işlem durumu mesajları -->
-                        <div id="sonucMesaji" class="mt-4 text-center fw-bold fs-5"></div>
-                    </div>
+                        <button type="submit" id="gonderBtn" class="btn btn-primary w-100 py-3 fw-bold fs-5">Gönder</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urunSelect = document.getElementById('ilgilenilenUrun');
-            
-            // 1. Veri tabanındaki ürünleri çekip "İlgilendiğiniz Ürün" listesine ekle
-            try {
-                const response = await fetch('https://website3d-93zb.onrender.com/api/urunler');
-                const urunler = await response.json();
-                
-                urunler.forEach(urun => {
-                    const option = document.createElement('option');
-                    option.value = urun.isim;
-                    option.textContent = urun.isim;
-                    urunSelect.appendChild(option);
-                });
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const kullaniciStr = localStorage.getItem('kullanici');
+            const navbarUl = document.querySelector('#navbarNav ul');
 
-                // 2. URL'de parametre varsa (Örn: iletisim.html?urun=Yelpaze), listede onu otomatik seç
-                const urlParams = new URLSearchParams(window.location.search);
-                const gelenUrun = urlParams.get('urun');
-                if (gelenUrun) {
-                    urunSelect.value = gelenUrun;
-                }
-            } catch (error) {
-                console.error("Ürünler form listesine yüklenemedi:", error);
+            // --- 1. MENÜ VE OTOMATİK DOLDURMA İŞLEMİ ---
+            if (token && kullaniciStr) {
+                const kullanici = JSON.parse(kullaniciStr);
+                
+                // Kullanıcı Giriş Yapmışsa Menü
+                navbarUl.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown">
+                            👤 Merhaba, ${kullanici.isim}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                            ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
+                            <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
+                        </ul>
+                    </li>
+                `;
+                
+                // Formu otomatik doldur ve kitle
+                const isimKutusu = document.getElementById('isimInput');
+                isimKutusu.value = kullanici.isim;
+                isimKutusu.readOnly = true;
+                isimKutusu.classList.add('bg-light');
+                
+                const emailKutusu = document.getElementById('emailInput');
+                emailKutusu.value = kullanici.email;
+                emailKutusu.readOnly = true;
+                emailKutusu.classList.add('bg-light');
+
+            } else {
+                // Ziyaretçi Menüsü (Formu kendisi dolduracak, inputlar serbest)
+                navbarUl.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
+                    <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
+                `;
+            }
+
+            // --- 2. URL PARAMETRELERİNİ OKUMA (AKILLI FORMU ŞEKİLLENDİRME) ---
+            // Adres çubuğundaki "?kaynak=..." kısımlarını yakalıyoruz
+            const urlParams = new URLSearchParams(window.location.search);
+            const kaynak = urlParams.get('kaynak');
+            const gelenFiyat = urlParams.get('fiyat');
+            const urunAdi = urlParams.get('urun');
+
+            if (kaynak === 'hesapla' && gelenFiyat) {
+                // HESAPLA SAYFASINDAN GELENLER
+                document.getElementById('sayfaBasligi').innerText = 'Özel Siparişi Tamamla';
+                document.getElementById('sayfaAciklamasi').innerText = 'Özel baskı talebiniz için onay verin ve dosyanızı yükleyin.';
+                document.getElementById('fiyatInput').value = gelenFiyat + " ₺ (Özel Hesaplama)";
+                document.getElementById('fiyatAlani').style.display = 'block';
+                document.getElementById('gonderBtn').innerText = 'Siparişi Onayla ve Gönder';
+
+            } else if (kaynak === 'vitrin' && gelenFiyat && urunAdi) {
+                // VİTRİN ÜRÜNÜNDEN GELENLER (İlerisi için hazırlık)
+                document.getElementById('sayfaBasligi').innerText = 'Ürün Siparişi';
+                document.getElementById('sayfaAciklamasi').innerText = 'Seçtiğiniz ürünün siparişini tamamlayın.';
+                document.getElementById('fiyatInput').value = gelenFiyat + " ₺ (" + urunAdi + ")";
+                document.getElementById('fiyatAlani').style.display = 'block';
+                document.getElementById('mesajInput').value = `"${urunAdi}" isimli ürün için sipariş oluşturuyorum.\nEkstra notlarım:\n`;
+                document.getElementById('gonderBtn').innerText = 'Siparişi Onayla ve Gönder';
+
+            } else {
+                // DOĞRUDAN İLETİŞİM LİNKİNE TIKLAYANLAR
+                // Varsayılan halinde kalır, fiyat bölümü gizli kalmaya devam eder.
             }
         });
 
-        // Form Gönderme İşlemi
-        document.getElementById('siparisFormu').addEventListener('submit', async (event) => {
-            event.preventDefault(); // Sayfa yenilenmesini engelle
-            
-            const gonderButonu = document.getElementById('gonderButonu');
-            const sonucMesaji = document.getElementById('sonucMesaji');
-            const dosyaInput = document.getElementById('dosyaYukle');
-            
-            // İşlem sürerken butonu kilitle
-            gonderButonu.disabled = true;
-            gonderButonu.innerText = "İşlemler Yapılıyor... Lütfen Bekleyin";
-            sonucMesaji.className = "mt-4 text-center fw-bold text-primary";
-            sonucMesaji.innerText = "Hazırlanıyor...";
+        function cikisYap() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('kullanici');
+            window.location.href = 'index.html';
+        }
 
-            let cloudDosyaUrl = "";
+        // --- 3. FORMU VERİTABANINA GÖNDERME ---
+        document.getElementById('iletisimFormu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('gonderBtn');
+            btn.disabled = true;
+            btn.innerText = 'İletiliyor...';
+
+            const dosyaInput = document.getElementById('dosyaInput');
+            const dosyaAdi = (dosyaInput.files.length > 0) ? dosyaInput.files[0].name : 'Dosya Yok';
+
+            // Adres çubuğundaki fiyatı bulalım (Eğer varsa)
+            const urlParams = new URLSearchParams(window.location.search);
+            const siparisFiyati = parseFloat(urlParams.get('fiyat')) || 0;
+
+            const yeniSiparis = {
+                isim: document.getElementById('isimInput').value,
+                email: document.getElementById('emailInput').value,
+                dosyaAdi: dosyaAdi,
+                fiyat: siparisFiyati,
+                mesaj: document.getElementById('mesajInput').value
+            };
 
             try {
-                // ADIM 1: Eğer kullanıcı dosya seçmişse, Node.js'i aradan çıkarıp doğrudan Cloudinary'ye gönder
-                if (dosyaInput.files.length > 0) {
-                    sonucMesaji.innerText = "Dosya buluta yükleniyor... ⏳";
-                    
-                    const formData = new FormData();
-                    formData.append('file', dosyaInput.files[0]);
-                    formData.append('upload_preset', 'siparis_gorselleri'); // Senin belirlediğin isim
-
-                    // Senin Cloud Name bilginle istek atıyoruz (km6ul35l)
-                    const cloudRes = await fetch('https://api.cloudinary.com/v1_1/km6ul35l/auto/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const cloudData = await cloudRes.json();
-                    if (cloudData.secure_url) {
-                        cloudDosyaUrl = cloudData.secure_url; // Oluşan güvenli URL'yi al
-                    } else {
-                        throw new Error("Cloudinary yüklemesi reddedildi.");
-                    }
-                }
-
-                // ADIM 2: Form metinlerini ve (eğer varsa) Cloudinary URL'sini bizim Node.js sunucumuza gönder
-                sonucMesaji.innerText = "Siparişiniz veri tabanına kaydediliyor... 💾";
-                
-                const siparisVerisi = {
-                    musteriAd: document.getElementById('musteriAd').value,
-                    email: document.getElementById('email').value,
-                    telefon: document.getElementById('telefon').value,
-                    ilgilenilenUrun: document.getElementById('ilgilenilenUrun').value,
-                    mesaj: document.getElementById('mesaj').value,
-                    dosyaUrl: cloudDosyaUrl // URL'yi MongoDB şemasına yolluyoruz
-                };
-
-                const backendRes = await fetch('https://website3d-93zb.onrender.com/api/siparisler', {
+                const response = await fetch('https://website3d-93zb.onrender.com/api/siparisler', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(siparisVerisi)
+                    body: JSON.stringify(yeniSiparis)
                 });
 
-                if (backendRes.ok) {
-                    // İşlem tamamen bittiğinde
-                    sonucMesaji.className = "mt-4 text-center fw-bold text-success";
-                    sonucMesaji.innerText = "🎉 Siparişiniz başarıyla alındı! Detaylar için sizinle iletişime geçeceğiz.";
-                    document.getElementById('siparisFormu').reset(); // Formu temizle
+                if (response.ok) {
+                    alert("✅ Talebiniz başarıyla alındı! En kısa sürede iletişime geçeceğiz.");
+                    // İşlem bitince parametresiz temiz ana sayfaya yönlendir
+                    window.location.href = 'index.html';
                 } else {
-                    throw new Error("MongoDB kaydı sırasında sunucu hatası.");
+                    alert("❌ İşlem sırasında bir hata meydana geldi.");
                 }
-
             } catch (error) {
-                console.error(error);
-                sonucMesaji.className = "mt-4 text-center fw-bold text-danger";
-                sonucMesaji.innerText = "❌ Bir hata oluştu: " + error.message;
+                alert("Sunucuya bağlanılamadı.");
             } finally {
-                // Butonu eski haline getir
-                gonderButonu.disabled = false;
-                gonderButonu.innerText = "Siparişi Gönder";
+                btn.disabled = false;
+                btn.innerText = 'Gönder';
             }
         });
     </script>
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const token = localStorage.getItem('token');
-        const kullaniciStr = localStorage.getItem('kullanici');
-        const navbarUl = document.querySelector('#navbarNav ul');
-
-        if (token && kullaniciStr) {
-        // 1. DURUM: KULLANICI GİRİŞ YAPMIŞSA (Dropdown Menü Tasarımı)
-        const kullanici = JSON.parse(kullaniciStr);
-        navbarUl.innerHTML = `
-            <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-            <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    👤 Merhaba, ${kullanici.isim}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                    ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
-                    <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
-                </ul>
-            </li>
-        `;
-    } else {
-            // 2. DURUM: KULLANICI GİRİŞ YAPMAMIŞSA (Ziyaretçi)
-            navbarUl.innerHTML = `
-                <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-                <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-                <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
-                <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
-            `;
-        }
-    });
-
-    // Çıkış yapma fonksiyonu
-    function cikisYap() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('kullanici');
-        window.location.href = 'index.html'; // Çıkış yapınca ana sayfaya yönlendir
-    }
-</script>
 </body>
 </html>

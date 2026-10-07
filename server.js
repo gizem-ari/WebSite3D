@@ -172,6 +172,17 @@ app.post('/api/urunler', async (req, res) => {
     }
 });
 
+// Ürün Stok Durumunu Güncelleme API'si
+app.put('/api/urunler/:id/stok', async (req, res) => {
+    try {
+        const { stokDurumu } = req.body;
+        await Urun.findByIdAndUpdate(req.params.id, { stokDurumu });
+        res.status(200).json({ mesaj: "Stok durumu başarıyla güncellendi!" });
+    } catch (error) {
+        res.status(500).json({ mesaj: "Stok güncellenemedi." });
+    }
+});
+
 // --- SİPARİŞ API'LERİ ---
 app.get('/api/siparisler', async (req, res) => {
     try {
@@ -250,9 +261,7 @@ app.post('/api/auth/giris', async (req, res) => {
 });
 
 
-// ==========================================
 // 4. SUNUCUYU BAŞLATMA (Her Zaman En Altta Olmalı)
-// ==========================================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Sunucu ${PORT} portunda çalışıyor!`);

@@ -72,7 +72,7 @@
                         <h1 class="display-4 mb-3">🛠️</h1>
                         <h5 class="fw-bold text-warning">Vitrin Yönetimi</h5>
                         <p class="text-muted small">Ana sayfadaki hazır 3D modelleri ekleyin veya düzenleyin.</p>
-                        <button class="btn btn-warning w-100 text-dark fw-bold">Ürünleri Yönet</button>
+                        <button class="btn btn-warning w-100 text-dark fw-bold"data-bs-toggle="modal" data-bs-target="#urunModal" onclick="urunleriGetir()">Ürünleri Yönet</button>
                     </div>
                 </div>
             </div>
@@ -138,6 +138,71 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Vitrin Yönetimi Açılır Penceresi (Modal) -->
+    <div class="modal fade" id="urunModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">🛠️ Vitrin Yönetimi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- Yeni Ürün Ekleme Formu -->
+                    <div class="card mb-4 border-warning">
+                        <div class="card-header bg-light fw-bold">➕ Yeni Ürün Ekle</div>
+                        <div class="card-body">
+                            <form id="urunFormu">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label small text-muted">Ürün Adı</label>
+                                        <input type="text" id="urunIsim" class="form-control fw-bold" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small text-muted">Fiyat (₺)</label>
+                                        <input type="number" id="urunFiyat" class="form-control fw-bold text-success" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">Kısa Açıklama</label>
+                                    <input type="text" id="urunAciklama" class="form-control" required>
+                                </div>
+                                <!-- YENİ EKLENEN KISIM: Malzeme ve Stok -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-muted">Kullanılan Malzeme</label>
+                                        <input type="text" id="urunMalzeme" class="form-control" placeholder="Örn: PLA+, İpek PLA" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-muted">Başlangıç Stok Durumu</label>
+                                        <select id="urunStok" class="form-select" required>
+                                            <option value="Stokta Var">Stokta Var</option>
+                                            <option value="Siparişe Özel Üretim">Siparişe Özel Üretim</option>
+                                            <option value="Tükendi">Tükendi</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label small text-muted">STL Dosya Yolu (Opsiyonel)</label>
+                                    <input type="text" id="urunStl" class="form-control text-primary" placeholder="Örn: models/ornek-model.stl">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-warning w-100 fw-bold" id="urunKaydetBtn">Vitrine Ekle</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Mevcut Ürünler Listesi -->
+                    <h6 class="fw-bold mb-3">📦 Vitrindeki Ürünler</h6>
+                    <ul class="list-group" id="urunListesi">
+                        <!-- Ürünler JavaScript ile buraya yüklenecek -->
+                        <li class="list-group-item text-center text-muted">Ürünler yükleniyor...</li>
+                    </ul>
+
                 </div>
             </div>
         </div>
@@ -245,6 +310,99 @@
                 tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Bağlantı hatası oluştu!</td></tr>';
             }
         }
+ // --- VİTRİN/ÜRÜN YÖNETİMİ FONKSİYONLARI ---
+
+        // 1. Ürünleri Çek ve Listele (Stok Seçeneğiyle Birlikte)
+        async function urunleriGetir() {
+            const liste = document.getElementById('urunListesi');
+            liste.innerHTML = '<li class="list-group-item text-center text-muted">Ürünler yükleniyor...</li>';
+
+            try {
+                const response = await fetch('https://website3d-93zb.onrender.com/api/urunler');
+                const urunler = await response.json();
+
+                if (urunler.length === 0) {
+                    liste.innerHTML = '<li class="list-group-item text-center text-muted">Vitrinde henüz ürün yok.</li>';
+                    return;
+                }
+
+                liste.innerHTML = '';
+                urunler.forEach(urun => {
+                    liste.innerHTML += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="w-75">
+                                <strong>${urun.isim}</strong> <span class="badge bg-success rounded-pill ms-2">${urun.fiyat} ₺</span><br>
+                                <small class="text-muted d-block text-truncate" style="max-width: 90%;">${urun.aciklama}</small>
+                                <small class="text-secondary fw-semibold">Malzeme: ${urun.malzeme || '-'} | Dosya: ${urun.stlDosyaYolu || '-'}</small>
+                            </div>
+                            <!-- Stok Güncelleme Seçeneği -->
+                            <div style="width: 25%;">
+                                <select class="form-select form-select-sm border-warning" onchange="stokGuncelle('${urun._id}', this.value)">
+                                    <option value="Stokta Var" ${urun.stokDurumu === 'Stokta Var' ? 'selected' : ''}>Stokta Var</option>
+                                    <option value="Siparişe Özel Üretim" ${urun.stokDurumu === 'Siparişe Özel Üretim' ? 'selected' : ''}>Siparişe Üretim</option>
+                                    <option value="Tükendi" ${urun.stokDurumu === 'Tükendi' ? 'selected' : ''}>Tükendi</option>
+                                </select>
+                            </div>
+                        </li>
+                    `;
+                });
+            } catch (error) {
+                liste.innerHTML = '<li class="list-group-item text-center text-danger">Bağlantı hatası oluştu!</li>';
+            }
+        }
+
+        // 2. Stok Durumunu Anında Güncelleyen Fonksiyon
+        async function stokGuncelle(id, yeniStok) {
+            try {
+                const response = await fetch(`https://website3d-93zb.onrender.com/api/urunler/${id}/stok`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stokDurumu: yeniStok })
+                });
+
+                if (!response.ok) {
+                    alert("Stok durumu güncellenirken bir hata oluştu.");
+                }
+            } catch (error) {
+                alert("Sunucuya bağlanılamadı.");
+            }
+        }
+
+        // 3. Yeni Ürün Ekle (Tüm Detaylarıyla Form Gönderimi)
+        document.getElementById('urunFormu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('urunKaydetBtn');
+            btn.innerText = 'Ekleniyor...';
+            btn.disabled = true;
+
+            const yeniUrun = {
+                isim: document.getElementById('urunIsim').value,
+                fiyat: parseFloat(document.getElementById('urunFiyat').value),
+                aciklama: document.getElementById('urunAciklama').value,
+                malzeme: document.getElementById('urunMalzeme').value, // Formdan alındı
+                stokDurumu: document.getElementById('urunStok').value, // Formdan alındı
+                stlDosyaYolu: document.getElementById('urunStl').value // Formdan alındı
+            };
+
+            try {
+                const response = await fetch('https://website3d-93zb.onrender.com/api/urunler', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(yeniUrun)
+                });
+                
+                if (response.ok) {
+                    alert("✅ Ürün vitrine başarıyla eklendi!");
+                    document.getElementById('urunFormu').reset(); 
+                    urunleriGetir(); 
+                }
+            } catch (error) {
+                alert("❌ Sunucuya bağlanırken bir hata oluştu.");
+            } finally {
+                btn.innerText = 'Vitrine Ekle';
+                btn.disabled = false;
+            }
+        });
 
         // Sipariş durumunu güncelle
         async function durumGuncelle(id, yeniDurum) {

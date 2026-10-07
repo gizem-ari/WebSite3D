@@ -33,7 +33,7 @@
 </head>
 <body>
 
-    <!-- Üst Menü (index.html ile aynı) -->
+    <!-- Üst Menü -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
         <div class="container">
             <a class="navbar-brand fw-bold text-primary" href="index.html">3D Fabrika</a>
@@ -68,14 +68,7 @@
 
                 <div class="card calc-card p-4 p-md-5 bg-white">
                     <form id="hesapFormu">
-                        
-                        <!-- Dosya Yükleme (Şimdilik sadece görsel UX için) -->
-                        <div class="mb-4">
-                            <label for="stlDosyasi" class="form-label fw-semibold">.STL Dosyanız (Opsiyonel - Sadece model ismi için)</label>
-                            <input class="form-control" type="file" id="stlDosyasi" accept=".stl">
-                            <div class="form-text">Dosyanız sunucularımıza yüklenmez, tarayıcınızda güvendedir.</div>
-                        </div>
-
+    
                         <div class="row">
                             <!-- Gramaj Girdisi -->
                             <div class="col-md-4 mb-3">
@@ -110,13 +103,14 @@
                         </button>
                     </form>
 
-                    <!-- Sonuç Ekranı (JS ile gösterilecek) -->
+                    <!-- Sonuç Ekranı -->
                     <div id="sonucAlani" class="mt-5 text-center p-4 bg-light rounded-3 border border-primary border-opacity-25">
                         <h4 class="text-muted mb-2">Tahmini Baskı Ücreti</h4>
                         <h1 class="display-4 fw-bold text-primary mb-4" id="sonucFiyat">0 ₺</h1>
                         <p class="small text-muted mb-4">*Fiyatlar tahmini olup, modelin karmaşıklığına ve destek (support) ihtiyacına göre %10-15 değişiklik gösterebilir.</p>
                         
-                        <a href="iletisim.html" class="btn btn-success btn-lg px-5">Siparişi Onayla & İletişime Geç</a>
+                        <!-- YENİ SİPARİŞ BUTONUMUZ -->
+                        <button id="siparisVerBtn" class="btn btn-success btn-lg px-5 w-100" onclick="siparisiTamamla()">Siparişi Oluştur</button>
                     </div>
 
                 </div>
@@ -126,9 +120,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Hesaplama Mantığı (JavaScript) -->
-   <script>
-   // Sunucudan (Backend) ayarları tutacağımız genel değişken
+    <!-- Hesaplama ve Sipariş Mantığı -->
+    <script>
+    // Sunucudan (Backend) ayarları tutacağımız genel değişken
     let fiyatAyarlari = null;
 
     // 1. Sayfa yüklendiğinde arka yüze (API'ye) istek atıyoruz
@@ -143,17 +137,34 @@
         }
     });
 
-    // 2. Fiyat hesaplama fonksiyonu (Butondaki isimle birebir aynı yapıldı)
+// 2. Fiyat hesaplama fonksiyonu
     function fiyatHesapla() {
         if (!fiyatAyarlari) {
             alert("Sunucudan fiyat verileri henüz yüklenmedi, lütfen biraz bekleyip tekrar deneyin.");
             return;
         }
 
-        // HTML'deki doğru ID'lerden değerleri alıyoruz
-        const gram = parseFloat(document.getElementById('gramaj').value) || 0;
-        const saat = parseFloat(document.getElementById('saat').value) || 0;
-        const dakika = parseFloat(document.getElementById('dakika').value) || 0;
+        // HTML'den girilen ham metinleri (string) alıyoruz
+        const gramGirdisi = document.getElementById('gramaj').value;
+        const saatGirdisi = document.getElementById('saat').value;
+        const dakikaGirdisi = document.getElementById('dakika').value;
+
+        // 1. GÜVENLİK KONTROLÜ: Kutular boş bırakılmış mı?
+        if (gramGirdisi === "" || saatGirdisi === "" || dakikaGirdisi === "") {
+            alert("Lütfen gramaj, saat ve dakika değerlerinin tümünü eksiksiz girin.");
+            return; // Eksik varsa fonksiyonu burada durdur
+        }
+
+        // Metinleri küsuratlı sayılara çeviriyoruz
+        const gram = parseFloat(gramGirdisi);
+        const saat = parseFloat(saatGirdisi);
+        const dakika = parseFloat(dakikaGirdisi);
+
+        // 2. GÜVENLİK KONTROLÜ: Değerler mantıklı mı? (Örn: Gramaj 0 veya eksi olamaz)
+        if (gram <= 0) {
+            alert("Lütfen gramaj için 0'dan büyük geçerli bir değer girin.");
+            return;
+        }
 
         // Dakikayı saate çevirip toplam süreyi buluyoruz (Örn: 30 dk = 0.5 saat)
         const toplamSaat = saat + (dakika / 60);
@@ -168,50 +179,69 @@
         // Sonucu ekrandaki doğru ID'ye yazdırıyoruz
         document.getElementById('sonucFiyat').innerText = nihaiSatisFiyati.toFixed(2) + " ₺";
         
-        // Başlangıçta gizli olan sonuç alanını görünür (block) yapıyoruz
+        // Başlangıçta gizli olan sonuç alanını ve sipariş butonunu görünür (block) yapıyoruz
         document.getElementById('sonucAlani').style.display = 'block';
+        document.getElementById('siparisVerBtn').classList.remove('d-none');
     }
-</script>
-  <script>
+
+    // 3. YENİ EKLENEN FONKSİYON: Siparişi Backend'e Gönderme
+    function siparisiTamamla() {
+        const kullaniciData = localStorage.getItem('kullanici');
+        if (!kullaniciData) {
+            alert("Sipariş verebilmek için lütfen önce giriş yapın veya kayıt olun.");
+            window.location.href = 'giris.html';
+            return;
+        }
+
+        // Fiyatı ekrandan alıyoruz
+        const fiyatMetni = document.getElementById('sonucFiyat').innerText; 
+        const fiyatNumarasi = parseFloat(fiyatMetni.replace('₺', '').trim()) || 0;
+        
+        // Hafızaya (localStorage) KAYDETMİYORUZ! Doğrudan adres çubuğuna ekleyip yolluyoruz:
+        window.location.href = `iletisim.html?kaynak=hesapla&fiyat=${fiyatNumarasi}`;
+    }
+    </script>
+    
+    <!-- Üst Menü Dinamik Yapısı -->
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('token');
         const kullaniciStr = localStorage.getItem('kullanici');
         const navbarUl = document.querySelector('#navbarNav ul');
 
         if (token && kullaniciStr) {
-        // 1. DURUM: KULLANICI GİRİŞ YAPMIŞSA (Dropdown Menü Tasarımı)
-        const kullanici = JSON.parse(kullaniciStr);
-        navbarUl.innerHTML = `
-            <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-            <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    👤 Merhaba, ${kullanici.isim}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                    ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
-                    <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
-                </ul>
-            </li>
-        `;
-    } else {
-            // 2. DURUM: KULLANICI GİRİŞ YAPMAMIŞSA (Ziyaretçi)
+            const kullanici = JSON.parse(kullaniciStr);
             navbarUl.innerHTML = `
                 <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
                 <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                <li class="nav-item"><a class="nav-link active text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 Merhaba, ${kullanici.isim}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                        ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
+                        <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
+                    </ul>
+                </li>
+            `;
+        } else {
+            navbarUl.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                <li class="nav-item"><a class="nav-link active text-primary fw-semibold" href="iletisim.html">İletişim</a></li>
                 <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
                 <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
             `;
         }
     });
 
-    // Çıkış yapma fonksiyonu
     function cikisYap() {
         localStorage.removeItem('token');
         localStorage.removeItem('kullanici');
-        window.location.href = 'index.html'; // Çıkış yapınca ana sayfaya yönlendir
+        window.location.href = 'index.html'; 
     }
-</script>
+    </script>
 
 </body>
 </html>
