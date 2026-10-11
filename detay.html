@@ -49,12 +49,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-                    <li class="nav-item"><a class="nav-link text-primary fw-semibold" href="index.html#urunler">Ürünler</a></li>
-                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-                    <li class="nav-item"><a class="nav-link" href="iletisim.html">İletişim</a></li>
-                </ul>
+                <ul class="navbar-nav ms-auto"></ul>
             </div>
         </div>
     </nav>
@@ -80,18 +75,35 @@
 
             <!-- Sağ Taraf: Ürün Bilgileri -->
             <div class="col-lg-5">
-                <h2 id="urunIsim" class="fw-bold mb-3">Yükleniyor...</h2>
-                <h3 id="urunFiyat" class="text-primary fw-bold mb-4">- ₺</h3>
-                <p id="urunAciklama" class="text-muted mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 id="urunIsim" class="fw-bold mb-0">Yükleniyor...</h2>
+                </div>
+                
+                <div class="mb-3" id="stokEtiketiAlani">
+                    <!-- Stok etiketi JS ile buraya eklenecek -->
+                </div>
+                
+                <h3 id="urunFiyat" class="text-primary fw-bold mb-4">₺</h3>
+                
+                <p id="urunAciklama" class="text-muted mb-4 lead" style="font-size: 1.1rem;">
                     Ürün detayları veri tabanından getiriliyor, lütfen bekleyin...
                 </p>
-                <ul class="list-group list-group-flush mb-4 bg-transparent">
-                    <li class="list-group-item bg-transparent px-0"><strong>Malzeme:</strong> <span id="urunMalzeme">-</span></li>
-                    <li class="list-group-item bg-transparent px-0"><strong>Boyutlar:</strong> <span id="urunBoyutlar">-</span></li>
-                    <li class="list-group-item bg-transparent px-0"><strong>Stok Durumu:</strong> <span id="urunStok">-</span></li>
-                </ul>
-                <div class="d-grid gap-2">
-                    <a href="iletisim.html" id="siparisButonu" class="btn btn-primary btn-lg fw-bold">Sipariş Ver</a>
+                
+                <div class="bg-light p-3 rounded-3 mb-4 border">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Malzeme</small>
+                            <strong id="urunMalzeme">-</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Boyutlar</small>
+                            <strong id="urunBoyutlar">-</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-auto" id="butonAlani">
+                    <a href="iletisim.html" id="siparisButonu" class="btn btn-primary btn-lg fw-bold shadow-sm">Sipariş Ver</a>
                 </div>
             </div>
         </div>
@@ -154,15 +166,36 @@
                 document.getElementById('urunIsim').innerText = urun.isim;
                 document.getElementById('urunFiyat').innerText = urun.fiyat + " ₺";
                 document.getElementById('urunAciklama').innerText = urun.aciklama;
-                document.getElementById('urunMalzeme').innerText = urun.malzeme;
-                document.getElementById('urunBoyutlar').innerText = urun.boyutlar;
-                document.getElementById('urunStok').innerText = urun.stokDurumu;
+                document.getElementById('urunMalzeme').innerText = urun.malzeme || 'Belirtilmedi';
+                document.getElementById('urunBoyutlar').innerText = urun.boyutlar || 'Standart';
                 
-                // Sipariş butonuna ürün bilgisini ekle
-                document.getElementById('siparisButonu').href = `iletisim.html?urun=${encodeURIComponent(urun.isim)}`;
+                // Stok durumuna göre Etiket ve Buton Ayarı
+                const stokAlani = document.getElementById('stokEtiketiAlani');
+                const butonAlani = document.getElementById('butonAlani');
+                
+                const urlUrunAdi = encodeURIComponent(urun.isim);
+                const siparisLinki = `iletisim.html?kaynak=vitrin&fiyat=${urun.fiyat}&urun=${urlUrunAdi}`;
 
-                // Ürün verileri geldikten sonra STL dosyasını yükle
-                stlYukle(urun.stlDosyaYolu);
+                if (urun.stokDurumu === 'Tükendi') {
+                    stokAlani.innerHTML = `<span class="badge bg-danger fs-6">Tükendi</span>`;
+                    butonAlani.innerHTML = `<button class="btn btn-secondary btn-lg fw-bold shadow-sm" disabled>Şu An Stokta Yok</button>`;
+                } else {
+                    if (urun.stokDurumu === 'Siparişe Özel Üretim') {
+                        stokAlani.innerHTML = `<span class="badge bg-info text-dark fs-6">Siparişe Özel Üretim</span>`;
+                    } else {
+                        stokAlani.innerHTML = `<span class="badge bg-success fs-6">Stokta Var</span>`;
+                    }
+                    // Stok varsa aktif akıllı buton
+                    butonAlani.innerHTML = `<a href="${siparisLinki}" class="btn btn-primary btn-lg fw-bold shadow-sm">Siparişi Tamamla</a>`;
+                }
+
+                // Ürün verileri geldikten sonra STL dosyasını yükle (Yolu varsa)
+                if (urun.stlDosyaYolu && urun.stlDosyaYolu.trim() !== '') {
+                    stlYukle(urun.stlDosyaYolu);
+                } else {
+                    document.getElementById('loading-text').innerText = "Bu ürün için 3D model eklenmemiş.";
+                    document.getElementById('loading-text').classList.add('text-secondary');
+                }
 
             } catch (error) {
                 console.error("Hata:", error);
@@ -221,46 +254,47 @@
         });
     </script>
 
+     <!-- Dinamik Menü -->
      <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const token = localStorage.getItem('token');
-        const kullaniciStr = localStorage.getItem('kullanici');
-        const navbarUl = document.querySelector('#navbarNav ul');
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const kullaniciStr = localStorage.getItem('kullanici');
+            const navbarUl = document.querySelector('#navbarNav ul');
 
-        if (token && kullaniciStr) {
-        // 1. DURUM: KULLANICI GİRİŞ YAPMIŞSA (Dropdown Menü Tasarımı)
-        const kullanici = JSON.parse(kullaniciStr);
-        navbarUl.innerHTML = `
-            <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
-            <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    👤 Merhaba, ${kullanici.isim}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                    ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
-                    <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
-                </ul>
-            </li>
-        `;
-    } else {
-            // 2. DURUM: KULLANICI GİRİŞ YAPMAMIŞSA (Ziyaretçi)
+            if (token && kullaniciStr) {
+            const kullanici = JSON.parse(kullaniciStr);
             navbarUl.innerHTML = `
                 <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
                 <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
-                <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
-                <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
+                <li class="nav-item"><a class="nav-link" href="iletisim.html">İletişim</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 Merhaba, ${kullanici.isim}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                        <li><a class="dropdown-item fw-bold text-primary" href="profil.html">📦 Siparişlerim</a></li>
+                        ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li>' : ''}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
+                    </ul>
+                </li>
             `;
-        }
-    });
+        } else {
+                navbarUl.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                    <li class="nav-item"><a class="nav-link" href="iletisim.html">İletişim</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
+                    <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
+                `;
+            }
+        });
 
-    // Çıkış yapma fonksiyonu
-    function cikisYap() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('kullanici');
-        window.location.href = 'index.html'; // Çıkış yapınca ana sayfaya yönlendir
-    }
-</script>
+        function cikisYap() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('kullanici');
+            window.location.href = 'index.html'; 
+        }
+    </script>
 </body>
 </html>
-

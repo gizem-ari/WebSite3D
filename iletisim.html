@@ -47,7 +47,7 @@
                             <input type="text" id="fiyatInput" class="form-control fw-bold text-primary bg-light" readonly>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3" id="dosyaYuklemeAlani">
                             <label class="form-label text-muted small">Model Dosyası veya Görsel (.stl, .png, .jpg)</label>
                             <input type="file" id="dosyaInput" class="form-control border-primary">
                             <div class="form-text" id="dosyaAciklama">Sorularınız, tasarımlarınız veya özel siparişleriniz için dosya yükleyebilirsiniz.</div>
@@ -87,7 +87,9 @@
                             👤 Merhaba, ${kullanici.isim}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                            ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
+                            <li><a class="dropdown-item fw-bold text-primary" href="profil.html">📦 Siparişlerim</a></li>
+                            ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li>' : ''}
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
                         </ul>
                     </li>
@@ -138,6 +140,7 @@
                 document.getElementById('fiyatAlani').style.display = 'block';
                 document.getElementById('mesajInput').value = `"${urunAdi}" isimli ürün için sipariş oluşturuyorum.\nEkstra notlarım:\n`;
                 document.getElementById('gonderBtn').innerText = 'Siparişi Onayla ve Gönder';
+                document.getElementById('dosyaYuklemeAlani').style.display = 'none';
 
             } else {
                 // DOĞRUDAN İLETİŞİM LİNKİNE TIKLAYANLAR

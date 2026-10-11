@@ -5,27 +5,47 @@ require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Kullanici = require('./models/Kullanici');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// 'uploads' klasörünü dışarıya statik olarak açıyoruz ki linke tıklayınca dosya inebilsin
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// YÜKLEME (UPLOAD) AYARLARI
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './uploads';
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir); // Klasör yoksa otomatik oluşturur
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        // Dosya isimlerinin çakışmaması için başına o anki zaman damgasını ekliyoruz
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage: storage });
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, { family: 4 })
     .then(() => {
         console.log("✅ MongoDB Veri Tabanına Başarıyla Bağlanıldı!");
-        verileriOlustur(); // Bağlantı kurulduğunda veritabanını kontrol et ve doldur
+        verileriOlustur(); 
     })
     .catch((err) => console.log("❌ MongoDB Bağlantı Hatası: ", err));
 
-
 // ==========================================
-// 1. MONGOOSE ŞEMALARI (Veri Tablosu Yapıları)
+// 1. MONGOOSE ŞEMALARI
 // ==========================================
 
-// Fiyatlandırma Ayarları Şeması
 const ayarSema = new mongoose.Schema({
     gramBasiMaliyet: Number,
     saatlikMakineUcreti: Number,
@@ -34,7 +54,6 @@ const ayarSema = new mongoose.Schema({
 });
 const Ayar = mongoose.model('Ayar', ayarSema);
 
-// 3D Ürünler Şeması
 const urunSema = new mongoose.Schema({
     isim: String,
     fiyat: Number,
@@ -46,22 +65,20 @@ const urunSema = new mongoose.Schema({
 });
 const Urun = mongoose.model('Urun', urunSema);
 
-// Sipariş Şeması (Admin paneliyle uyumlu hale getirildi)
 const siparisSema = new mongoose.Schema({
-    isim: String,         // musteriAd yerine isim yapıldı
+    isim: String,
     email: String,
     telefon: String,
-    dosyaAdi: String,     // Hangi modeli istediği
-    dosyaUrl: String,     // Özel dosya yüklediyse Cloudinary linki
-    fiyat: Number,        // Hesaplanıp müşteriye gösterilen fiyat
+    dosyaAdi: String,
+    dosyaUrl: String,     // Dosyanın sunucudaki konumu (/uploads/...)
+    fiyat: Number,
     mesaj: String,
     durum: { type: String, default: "Bekliyor" }
-}, { timestamps: true }); // createdAt (oluşturulma tarihi) bilgisini otomatik ekler
+}, { timestamps: true });
 const Siparis = mongoose.model('Siparis', siparisSema);
 
-
 // ==========================================
-// 2. ÖRNEK VERİLERİ DOLDURMA FONKSİYONU
+// 2. ÖRNEK VERİLERİ DOLDURMA
 // ==========================================
 async function verileriOlustur() {
     const ayarSayisi = await Ayar.countDocuments();
@@ -101,16 +118,14 @@ async function verileriOlustur() {
     }
 }
 
-
 // ==========================================
-// 3. API ROTALARI (Frontend ile iletişim)
+// 3. API ROTALARI
 // ==========================================
 
 app.get('/', (req, res) => {
     res.send("3D Fabrika API Sunucusu Çalışıyor 🚀");
 });
 
-// --- FİYAT AYARLARI API'LERİ ---
 app.get('/api/fiyat-ayarlari', async (req, res) => {
     try {
         const ayarlar = await Ayar.findOne(); 
@@ -142,7 +157,6 @@ app.post('/api/fiyat-ayarlari/guncelle', async (req, res) => {
     }
 });
 
-// --- ÜRÜN API'LERİ ---
 app.get('/api/urunler', async (req, res) => {
     try {
         const urunler = await Urun.find(); 
@@ -172,7 +186,6 @@ app.post('/api/urunler', async (req, res) => {
     }
 });
 
-// Ürün Stok Durumunu Güncelleme API'si
 app.put('/api/urunler/:id/stok', async (req, res) => {
     try {
         const { stokDurumu } = req.body;
@@ -183,7 +196,7 @@ app.put('/api/urunler/:id/stok', async (req, res) => {
     }
 });
 
-// --- SİPARİŞ API'LERİ ---
+// SİPARİŞ API'LERİ
 app.get('/api/siparisler', async (req, res) => {
     try {
         const siparisler = await Siparis.find().sort({ createdAt: -1 }); 
@@ -194,9 +207,41 @@ app.get('/api/siparisler', async (req, res) => {
     }
 });
 
-app.post('/api/siparisler', async (req, res) => {
+// YENİ: Profil sayfası için sadece o kullanıcıya ait siparişleri getirme
+app.get('/api/siparislerim/:email', async (req, res) => {
     try {
-        const yeniSiparis = await Siparis.create(req.body);
+        const kullaniciEmail = req.params.email;
+        const siparislerim = await Siparis.find({ email: kullaniciEmail }).sort({ createdAt: -1 });
+        
+        if (!siparislerim || siparislerim.length === 0) {
+            return res.status(200).json({ siparisler: [] });
+        }
+        
+        res.status(200).json({ siparisler: siparislerim });
+    } catch (error) {
+        console.error("Kullanıcı siparişleri çekilirken hata:", error);
+        res.status(500).json({ mesaj: "Siparişleriniz getirilemedi." });
+    }
+});
+
+// GÜNCELLENEN POST İŞLEMİ: FormData ve Multer desteği eklendi
+app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
+    try {
+        const { isim, email, mesaj, fiyat } = req.body;
+        
+        // Kullanıcı dosya yüklediyse bilgilerini alıyoruz
+        const dosyaAdi = req.file ? req.file.originalname : 'Dosya Yok';
+        const dosyaUrl = req.file ? `/uploads/${req.file.filename}` : '';
+
+        const yeniSiparis = await Siparis.create({
+            isim,
+            email,
+            mesaj,
+            fiyat: parseFloat(fiyat) || 0,
+            dosyaAdi,
+            dosyaUrl
+        });
+
         res.status(201).json({ mesaj: "✅ Siparişiniz başarıyla alındı!", siparisId: yeniSiparis._id });
     } catch (error) {
         console.error("❌ Sipariş Kayıt Hatası:", error); 
@@ -214,7 +259,6 @@ app.put('/api/siparisler/:id/durum', async (req, res) => {
     }
 });
 
-// --- KİMLİK DOĞRULAMA (AUTH) API'LERİ ---
 app.post('/api/auth/kayit', async (req, res) => {
     try {
         const { isim, email, sifre } = req.body;
@@ -260,8 +304,7 @@ app.post('/api/auth/giris', async (req, res) => {
     }
 });
 
-
-// 4. SUNUCUYU BAŞLATMA (Her Zaman En Altta Olmalı)
+// 4. SUNUCUYU BAŞLATMA
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Sunucu ${PORT} portunda çalışıyor!`);

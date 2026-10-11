@@ -200,6 +200,7 @@
         // Hafızaya (localStorage) KAYDETMİYORUZ! Doğrudan adres çubuğuna ekleyip yolluyoruz:
         window.location.href = `iletisim.html?kaynak=hesapla&fiyat=${fiyatNumarasi}`;
     }
+    
     </script>
     
     <!-- Üst Menü Dinamik Yapısı -->
@@ -219,10 +220,12 @@
                     <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         👤 Merhaba, ${kullanici.isim}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                        ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li><li><hr class="dropdown-divider"></li>' : ''}
-                        <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
-                    </ul>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                            <li><a class="dropdown-item fw-bold text-primary" href="profil.html">📦 Siparişlerim</a></li>
+                            ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li>' : ''}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
+                        </ul>
                 </li>
             `;
         } else {
