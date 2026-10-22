@@ -9,6 +9,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 // E-POSTA GÖNDERİM MOTORU (Transporter)
 const transporter = nodemailer.createTransport({
@@ -358,6 +359,7 @@ app.put('/api/siparisler/:id/durum', async (req, res) => {
     }
 });
 
+// KULLANICI KAYIT API'Sİ (Doğrulama Kodlu)
 app.post('/api/auth/kayit', async (req, res) => {
     try {
         const { isim, email, sifre } = req.body;
@@ -366,22 +368,71 @@ app.post('/api/auth/kayit', async (req, res) => {
 
         const salt = await bcrypt.genSalt(10);
         const sifrelenmisSifre = await bcrypt.hash(sifre, salt);
+        
+        // 64 karakterlik rastgele bir doğrulama kodu oluşturuyoruz
+        const dogrulamaKodu = crypto.randomBytes(32).toString('hex');
 
-        const yeniKullanici = new Kullanici({ isim, email, sifre: sifrelenmisSifre });
+        const yeniKullanici = new Kullanici({ 
+            isim, 
+            email, 
+            sifre: sifrelenmisSifre,
+            dogrulamaKodu: dogrulamaKodu
+        });
         await yeniKullanici.save();
 
-        res.status(201).json({ mesaj: "Kayıt işlemi başarıyla tamamlandı!" });
+        // 📩 DOĞRULAMA MAİLİ GÖNDERİMİ
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            const onayLinki = `https://website3d-93zb.onrender.com/api/auth/dogrula/${dogrulamaKodu}`;
+            
+            const onayMaili = {
+                from: `"3D Fabrika" <${process.env.EMAIL_USER}>`,
+                to: email,
+                subject: 'Hesabınızı Doğrulayın - 3D Fabrika',
+                html: `<h3>Aramıza Hoş Geldin, ${isim}!</h3>
+                       <p>Kayıt işlemini tamamlamak ve sipariş verebilmek için aşağıdaki bağlantıya tıklayarak e-posta adresinizi doğrulamanız gerekmektedir:</p>
+                       <a href="${onayLinki}" style="display:inline-block; padding:10px 20px; background-color:#2563EB; color:#fff; text-decoration:none; border-radius:5px; margin-top:10px;">Hesabımı Doğrula</a>
+                       <p style="margin-top:20px; font-size:12px; color:#666;">Buton çalışmıyorsa şu linki tarayıcınıza yapıştırın: ${onayLinki}</p>`
+            };
+            transporter.sendMail(onayMaili).catch(err => console.log("Onay maili hatası:", err));
+        }
+
+        res.status(201).json({ mesaj: "Kayıt başarılı! Lütfen e-posta adresinize gönderilen linke tıklayarak hesabınızı doğrulayın." });
     } catch (error) {
-        console.error("Kayıt hatası:", error);
         res.status(500).json({ mesaj: "Kayıt sırasında sunucu hatası oluştu." });
     }
 });
 
+// E-POSTA DOĞRULAMA KÖPRÜSÜ (Maile Tıklandığında Çalışır)
+app.get('/api/auth/dogrula/:kod', async (req, res) => {
+    try {
+        const kullanici = await Kullanici.findOne({ dogrulamaKodu: req.params.kod });
+        
+        if (!kullanici) {
+            return res.status(400).send("<h3>Geçersiz veya süresi dolmuş doğrulama bağlantısı.</h3>");
+        }
+
+        kullanici.onayliMi = true;
+        kullanici.dogrulamaKodu = undefined; // Kodu tek seferlik kullanıp siliyoruz
+        await kullanici.save();
+
+        // Başarılı doğrulama sonrası kullanıcıyı giriş sayfasına yönlendiriyoruz
+        res.redirect('/giris.html?onay=basarili');
+    } catch (error) {
+        res.status(500).send("Sunucu hatası oluştu.");
+    }
+});
+
+// KULLANICI GİRİŞ API'Sİ (Onay Kontrollü)
 app.post('/api/auth/giris', async (req, res) => {
     try {
         const { email, sifre } = req.body;
         const kullanici = await Kullanici.findOne({ email });
         if (!kullanici) return res.status(400).json({ mesaj: "Böyle bir kullanıcı bulunamadı." });
+
+        // YENİ: E-posta onay kontrolü
+        if (!kullanici.onayliMi) {
+            return res.status(403).json({ mesaj: "Lütfen giriş yapmadan önce e-posta adresinize gönderilen bağlantıdan hesabınızı doğrulayın." });
+        }
 
         const sifreDogruMu = await bcrypt.compare(sifre, kullanici.sifre);
         if (!sifreDogruMu) return res.status(400).json({ mesaj: "Hatalı şifre girdiniz." });
@@ -398,7 +449,6 @@ app.post('/api/auth/giris', async (req, res) => {
             kullanici: { isim: kullanici.isim, email: kullanici.email, rol: kullanici.rol }
         });
     } catch (error) {
-        console.error("Giriş hatası:", error);
         res.status(500).json({ mesaj: "Giriş sırasında sunucu hatası oluştu." });
     }
 });
