@@ -12,12 +12,19 @@ const nodemailer = require('nodemailer');
 
 // E-POSTA GÖNDERİM MOTORU (Transporter)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true ise 465 portunu, false ise 587 portunu kullanır
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        // Sunucu kaynaklı sertifika hatalarını es geçmek için
+        rejectUnauthorized: false
     }
 });
+
 const app = express();
 
 app.use(cors());
