@@ -8,7 +8,16 @@ const Kullanici = require('./models/Kullanici');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 
+// E-POSTA GÖNDERİM MOTORU (Transporter)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 const app = express();
 
 app.use(cors());
@@ -195,6 +204,29 @@ app.put('/api/urunler/:id/stok', async (req, res) => {
         res.status(500).json({ mesaj: "Stok güncellenemedi." });
     }
 });
+// ÜRÜN GÜNCELLEME API'Sİ
+app.put('/api/urunler/:id', async (req, res) => {
+    try {
+        const guncelUrun = await Urun.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!guncelUrun) return res.status(404).json({ mesaj: "Güncellenecek ürün bulunamadı." });
+        res.status(200).json({ mesaj: "✅ Ürün başarıyla güncellendi!", urun: guncelUrun });
+    } catch (error) {
+        console.error("Güncelleme hatası:", error);
+        res.status(500).json({ mesaj: "Ürün güncellenirken hata oluştu." });
+    }
+});
+
+// ÜRÜN SİLME API'Sİ 
+app.delete('/api/urunler/:id', async (req, res) => {
+    try {
+        const silinenUrun = await Urun.findByIdAndDelete(req.params.id);
+        if (!silinenUrun) return res.status(404).json({ mesaj: "Silinecek ürün bulunamadı." });
+        res.status(200).json({ mesaj: "✅ Ürün vitrinden silindi!" });
+    } catch (error) {
+        console.error("Silme hatası:", error);
+        res.status(500).json({ mesaj: "Ürün silinirken hata oluştu." });
+    }
+});
 
 // SİPARİŞ API'LERİ
 app.get('/api/siparisler', async (req, res) => {
@@ -207,7 +239,7 @@ app.get('/api/siparisler', async (req, res) => {
     }
 });
 
-// YENİ: Profil sayfası için sadece o kullanıcıya ait siparişleri getirme
+// Profil sayfası için sadece o kullanıcıya ait siparişleri getirme
 app.get('/api/siparislerim/:email', async (req, res) => {
     try {
         const kullaniciEmail = req.params.email;
@@ -229,7 +261,6 @@ app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
     try {
         const { isim, email, mesaj, fiyat } = req.body;
         
-        // Kullanıcı dosya yüklediyse bilgilerini alıyoruz
         const dosyaAdi = req.file ? req.file.originalname : 'Dosya Yok';
         const dosyaUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
@@ -242,6 +273,37 @@ app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
             dosyaUrl
         });
 
+        // 📩 MÜŞTERİYE VE ADMİNE OTOMATİK MAİL GÖNDERİMİ
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            
+            // 1. Müşteriye giden "Sipariş Alındı" maili
+            const musteriMail = {
+                from: `"3D Fabrika" <${process.env.EMAIL_USER}>`,
+                to: email,
+                subject: 'Siparişiniz Alındı! 📦 - 3D Fabrika',
+                html: `<h3>Merhaba ${isim},</h3>
+                       <p>3D baskı sipariş talebiniz başarıyla bize ulaşmıştır. Sipariş tutarınız: <b style="color:#2563EB;">${fiyat} ₺</b>.</p>
+                       <p>Siparişinizin üretim durumunu web sitemizdeki <b>Hesabım > Siparişlerim</b> sekmesinden anlık olarak takip edebilirsiniz.</p>
+                       <br><p>Bizi tercih ettiğiniz için teşekkürler!</p>`
+            };
+
+            // 2. Sana (Admin) gelecek olan "Yeni Sipariş Var" maili
+            const adminMail = {
+                from: `"3D Fabrika Sistem" <${process.env.EMAIL_USER}>`,
+                to: process.env.EMAIL_USER, 
+                subject: '🚨 YENİ SİPARİŞ GELDİ! - 3D Fabrika',
+                html: `<h3>Sisteme yeni bir sipariş düştü!</h3>
+                       <p><b>Müşteri:</b> ${isim} (${email})</p>
+                       <p><b>Model/Dosya:</b> ${dosyaAdi}</p>
+                       <p><b>Tutar:</b> ${fiyat} ₺</p>
+                       <p><b>Müşteri Mesajı:</b> ${mesaj}</p>
+                       <p>Lütfen <a href="https://website3d-93zb.onrender.com/admin.html">Admin Paneline</a> girerek siparişi onaylayın ve işleme alın.</p>`
+            };
+
+            transporter.sendMail(musteriMail).catch(err => console.log("Müşteri maili hatası:", err));
+            transporter.sendMail(adminMail).catch(err => console.log("Admin maili hatası:", err));
+        }
+
         res.status(201).json({ mesaj: "✅ Siparişiniz başarıyla alındı!", siparisId: yeniSiparis._id });
     } catch (error) {
         console.error("❌ Sipariş Kayıt Hatası:", error); 
@@ -252,7 +314,29 @@ app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
 app.put('/api/siparisler/:id/durum', async (req, res) => {
     try {
         const { durum } = req.body;
-        await Siparis.findByIdAndUpdate(req.params.id, { durum });
+        // { new: true } parametresi, veri güncellendikten SONRAKİ yeni halini döndürür.
+        const siparis = await Siparis.findByIdAndUpdate(req.params.id, { durum }, { new: true });
+        
+        if (!siparis) return res.status(404).json({ mesaj: "Sipariş bulunamadı." });
+
+        // 📩 MÜŞTERİYE DURUM DEĞİŞİKLİĞİ MAİLİ GÖNDERİMİ
+        if (siparis.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            
+            let emoji = '⚙️';
+            if (durum.toLowerCase().includes('tamamlandı') || durum.toLowerCase().includes('kargo')) emoji = '✅';
+            
+            const durumMail = {
+                from: `"3D Fabrika" <${process.env.EMAIL_USER}>`,
+                to: siparis.email,
+                subject: `Siparişiniz ${durum} ${emoji} - 3D Fabrika`,
+                html: `<h3>Merhaba ${siparis.isim},</h3>
+                       <p><b>${siparis.dosyaAdi !== 'Dosya Yok' ? siparis.dosyaAdi : 'Özel 3D Baskı'}</b> siparişinizin durumu güncellenmiştir.</p>
+                       <p>Güncel Durum: <span style="font-size: 18px; font-weight: bold; color: #2563EB;">${durum}</span></p>
+                       <p>Detayları web sitemizden hesabınıza giriş yaparak görebilirsiniz.</p>`
+            };
+            transporter.sendMail(durumMail).catch(err => console.log("Durum maili hatası:", err));
+        }
+
         res.status(200).json({ mesaj: "Sipariş durumu güncellendi!" });
     } catch (error) {
         res.status(500).json({ mesaj: "Durum güncellenemedi." });
