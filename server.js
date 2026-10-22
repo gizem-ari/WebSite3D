@@ -263,7 +263,7 @@ app.get('/api/siparislerim/:email', async (req, res) => {
     }
 });
 
-// GÜNCELLENEN POST İŞLEMİ: FormData ve Multer desteği eklendi
+// GÜNCELLENEN POST İŞLEMİ: Log ve Teşhis Destekli Mail Gönderimi
 app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
     try {
         const { isim, email, mesaj, fiyat } = req.body;
@@ -282,6 +282,7 @@ app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
 
         // 📩 MÜŞTERİYE VE ADMİNE OTOMATİK MAİL GÖNDERİMİ
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            console.log("📧 E-Posta değişkenleri okundu, gönderim deneniyor...");
             
             // 1. Müşteriye giden "Sipariş Alındı" maili
             const musteriMail = {
@@ -307,8 +308,15 @@ app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
                        <p>Lütfen <a href="https://website3d-93zb.onrender.com/admin.html">Admin Paneline</a> girerek siparişi onaylayın ve işleme alın.</p>`
             };
 
-            transporter.sendMail(musteriMail).catch(err => console.log("Müşteri maili hatası:", err));
-            transporter.sendMail(adminMail).catch(err => console.log("Admin maili hatası:", err));
+            transporter.sendMail(musteriMail)
+                .then(info => console.log("✅ Müşteri maili başarıyla gitti: ", info.response))
+                .catch(err => console.log("❌ Müşteri maili hatası:", err));
+
+            transporter.sendMail(adminMail)
+                .then(info => console.log("✅ Admin maili başarıyla gitti: ", info.response))
+                .catch(err => console.log("❌ Admin maili hatası:", err));
+        } else {
+            console.log("⚠️ UYARI: Render'da EMAIL_USER veya EMAIL_PASS bulunamadı! Mail atlandı.");
         }
 
         res.status(201).json({ mesaj: "✅ Siparişiniz başarıyla alındı!", siparisId: yeniSiparis._id });
