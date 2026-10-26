@@ -373,7 +373,6 @@ app.post('/api/auth/kayit', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const sifrelenmisSifre = await bcrypt.hash(sifre, salt);
         
-        // 64 karakterlik rastgele bir doğrulama kodu oluşturuyoruz
         const dogrulamaKodu = crypto.randomBytes(32).toString('hex');
 
         const yeniKullanici = new Kullanici({ 
@@ -386,7 +385,8 @@ app.post('/api/auth/kayit', async (req, res) => {
 
         // 📩 DOĞRULAMA MAİLİ GÖNDERİMİ
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            const onayLinki = `https://website3d-93zb.onrender.com/api/auth/dogrula/${dogrulamaKodu}`;
+            // URL güncellendi
+            const onayLinki = `https://bagitasarim.com.tr/api/auth/dogrula/${dogrulamaKodu}`;
             
             const onayMaili = {
                 from: `"3D Fabrika" <${process.env.EMAIL_USER}>`,
@@ -397,11 +397,19 @@ app.post('/api/auth/kayit', async (req, res) => {
                        <a href="${onayLinki}" style="display:inline-block; padding:10px 20px; background-color:#2563EB; color:#fff; text-decoration:none; border-radius:5px; margin-top:10px;">Hesabımı Doğrula</a>
                        <p style="margin-top:20px; font-size:12px; color:#666;">Buton çalışmıyorsa şu linki tarayıcınıza yapıştırın: ${onayLinki}</p>`
             };
-            transporter.sendMail(onayMaili).catch(err => console.log("Onay maili hatası:", err));
+            
+            // await eklendi ve loglar detaylandırıldı
+            try {
+                const info = await transporter.sendMail(onayMaili);
+                console.log("✅ Onay maili başarıyla gitti: ", info.response);
+            } catch (err) {
+                console.log("❌ Onay maili gönderim hatası:", err);
+            }
         }
 
         res.status(201).json({ mesaj: "Kayıt başarılı! Lütfen e-posta adresinize gönderilen linke tıklayarak hesabınızı doğrulayın." });
     } catch (error) {
+        console.error("Kayıt hatası:", error);
         res.status(500).json({ mesaj: "Kayıt sırasında sunucu hatası oluştu." });
     }
 });
