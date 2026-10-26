@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const path = require('path');
 
 // E-POSTA GÖNDERİM MOTORU (Transporter)
 const transporter = nodemailer.createTransport({
@@ -139,8 +140,12 @@ async function verileriOlustur() {
 // 3. API ROTALARI
 // ==========================================
 
+// Public klasöründeki ön yüz dosyalarını tarayıcı erişimine açar
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ana alan adına (bagitasarim.com.tr) girildiğinde index.html yüklenir
 app.get('/', (req, res) => {
-    res.send("3D Fabrika API Sunucusu Çalışıyor 🚀");
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/api/fiyat-ayarlari', async (req, res) => {
