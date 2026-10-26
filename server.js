@@ -10,7 +10,6 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const path = require('path');
 
 // E-POSTA GÖNDERİM MOTORU (Transporter)
 const transporter = nodemailer.createTransport({
