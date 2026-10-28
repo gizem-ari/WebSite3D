@@ -219,7 +219,7 @@ app.put('/api/urunler/:id/stok', async (req, res) => {
 // ÜRÜN GÜNCELLEME API'Sİ
 app.put('/api/urunler/:id', async (req, res) => {
     try {
-        const guncelUrun = await Urun.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const guncelUrun = await Urun.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
         if (!guncelUrun) return res.status(404).json({ mesaj: "Güncellenecek ürün bulunamadı." });
         res.status(200).json({ mesaj: "✅ Ürün başarıyla güncellendi!", urun: guncelUrun });
     } catch (error) {
@@ -334,8 +334,8 @@ app.post('/api/siparisler', upload.single('dosya'), async (req, res) => {
 app.put('/api/siparisler/:id/durum', async (req, res) => {
     try {
         const { durum } = req.body;
-        // { new: true } parametresi, veri güncellendikten SONRAKİ yeni halini döndürür.
-        const siparis = await Siparis.findByIdAndUpdate(req.params.id, { durum }, { new: true });
+        // { new: true } uyarısı giderildi
+        const siparis = await Siparis.findByIdAndUpdate(req.params.id, { durum }, { returnDocument: 'after' });
         
         if (!siparis) return res.status(404).json({ mesaj: "Sipariş bulunamadı." });
 
@@ -348,13 +348,20 @@ app.put('/api/siparisler/:id/durum', async (req, res) => {
             const durumMail = {
                 from: `"3D Fabrika" <${process.env.EMAIL_USER}>`,
                 to: siparis.email,
-                subject: `Siparişiniz ${durum} ${emoji} - 3D Fabrika`,
+                subject: `Siparişiniz ${durum} ${emoji} 3D Fabrika`,
                 html: `<h3>Merhaba ${siparis.isim},</h3>
                        <p><b>${siparis.dosyaAdi !== 'Dosya Yok' ? siparis.dosyaAdi : 'Özel 3D Baskı'}</b> siparişinizin durumu güncellenmiştir.</p>
                        <p>Güncel Durum: <span style="font-size: 18px; font-weight: bold; color: #2563EB;">${durum}</span></p>
                        <p>Detayları web sitemizden hesabınıza giriş yaparak görebilirsiniz.</p>`
             };
-            transporter.sendMail(durumMail).catch(err => console.log("Durum maili hatası:", err));
+            
+            // Await eklendi: Mailin gitmesi beklenip loglanacak
+            try {
+                const info = await transporter.sendMail(durumMail);
+                console.log(`✅ Sipariş durum maili başarıyla gitti: ${info.response}`);
+            } catch (err) {
+                console.log("❌ Durum maili hatası:", err);
+            }
         }
 
         res.status(200).json({ mesaj: "Sipariş durumu güncellendi!" });
