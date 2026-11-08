@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Ürün Detayı | 3D Fabrika</title>
+    <title id="pageTitle">Ürün Detayı | BAGİ Tasarım</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap" rel="stylesheet">
     
@@ -76,8 +77,22 @@
                 <p class="text-muted small text-center mt-2">🖱️ Modeli döndürmek için basılı tutun, yakınlaştırmak için tekerleği kullanın.</p>
             </div>
 
-            <!-- Sağ Taraf: Ürün Bilgileri -->
+            <!-- Sağ Taraf: Ürün Bilgileri ve Galeri -->
             <div class="col-lg-5">
+                
+                <!-- YENİ EKLENEN GALERİ (CAROUSEL) ALANI -->
+                <div id="urunGalerisi" class="carousel slide shadow-sm rounded-4 overflow-hidden mb-4 d-none" data-bs-ride="carousel">
+                    <div class="carousel-inner" id="galeriIcerik">
+                        <!-- JavaScript ile fotoğraflar buraya eklenecek -->
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#urunGalerisi" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#urunGalerisi" data-bs-slide="next">
+                        <span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+                    </button>
+                </div>
+
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h2 id="urunIsim" class="fw-bold mb-0">Yükleniyor...</h2>
                 </div>
@@ -165,19 +180,40 @@
 
             try {
                 // API'ye İstek Atıyoruz
-                const response = await fetch(`https://website3d-93zb.onrender.com/api/urunler/${urunId}`);                
+                const response = await fetch(`https://bagitasarim.com.tr/api/urunler/${urunId}`);                
                 if(!response.ok) throw new Error("Ürün bulunamadı");
                 
                 const urun = await response.json();
 
                 // HTML'i Dinamik Olarak Dolduruyoruz
-                document.getElementById('pageTitle').innerText = urun.isim + " | 3D Fabrika";
+                document.getElementById('pageTitle').innerText = urun.isim + " | BAGİ Tasarım";
                 document.getElementById('breadcrumbIsim').innerText = urun.isim;
                 document.getElementById('urunIsim').innerText = urun.isim;
                 document.getElementById('urunFiyat').innerText = urun.fiyat + " ₺";
                 document.getElementById('urunAciklama').innerText = urun.aciklama;
                 document.getElementById('urunMalzeme').innerText = urun.malzeme || 'Belirtilmedi';
                 document.getElementById('urunBoyutlar').innerText = urun.boyutlar || 'Standart';
+
+                // --- YENİ EKLENEN GALERİ DOLDURMA İŞLEMİ ---
+                const galeriKutusu = document.getElementById('urunGalerisi');
+                const galeriIcerik = document.getElementById('galeriIcerik');
+
+                if (urun.gorseller && urun.gorseller.length > 0) {
+                    galeriKutusu.classList.remove('d-none'); // Galeriyi görünür yap
+                    let slideHtml = '';
+                    
+                    urun.gorseller.forEach((gorselUrl, index) => {
+                        const aktifMi = index === 0 ? 'active' : '';
+                        slideHtml += `
+                            <div class="carousel-item ${aktifMi}">
+                                <img src="${gorselUrl}" class="d-block w-100" style="height: 400px; object-fit: contain; background-color: #f8f9fa;" alt="Ürün Görseli ${index + 1}">
+                            </div>
+                        `;
+                    });
+                    
+                    galeriIcerik.innerHTML = slideHtml;
+                }
+                // ------------------------------------------
                 
                 // Stok durumuna göre Etiket ve Buton Ayarı
                 const stokAlani = document.getElementById('stokEtiketiAlani');

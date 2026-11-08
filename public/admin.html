@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Paneli | 3D Fabrika</title>
+    <title>Yönetim Paneli | BAGİ Tasarım</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -25,7 +26,7 @@
     <!-- Admin Özel Menüsü -->
     <nav class="navbar navbar-dark bg-dark shadow-sm py-3">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="admin.html">⚙️ 3D Fabrika Yönetim</a>
+            <a class="navbar-brand fw-bold" href="admin.html">⚙️ BAGİ Tasarım Yönetim</a>
             <a class="btn btn-outline-light btn-sm" href="index.html">Siteye Dön</a>
         </div>
     </nav>
@@ -78,7 +79,7 @@
         </div>
     </div>
 
-    <!-- Fiyat Ayarları Modal (Değişiklik yok) -->
+    <!-- Fiyat Ayarları Modal -->
     <div class="modal fade" id="fiyatAyarlariModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -111,7 +112,7 @@
         </div>
     </div>
 
-    <!-- Sipariş Yönetimi Modal (Değişiklik yok) -->
+    <!-- Sipariş Yönetimi Modal -->
     <div class="modal fade" id="siparisModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -189,6 +190,11 @@
                                     <label class="form-label small text-muted">STL Dosya Yolu (Opsiyonel)</label>
                                     <input type="text" id="urunStl" class="form-control text-primary" placeholder="Örn: models/ornek-model.stl">
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Ürün Fotoğrafları (Virgülle ayırın)</label>
+                                    <input type="text" id="urunGorselleri" class="form-control" placeholder="images/ejderha1.jpg, images/ejderha2.jpg">
+                                    <div class="form-text text-muted">Örn: images/foto1.jpg, images/foto2.jpg</div>
+                                </div>
                                 
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-warning w-100 fw-bold" id="urunKaydetBtn">Vitrine Ekle</button>
@@ -212,10 +218,10 @@
     <!-- Bootstrap ve API Bağlantı Kodları -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Fiyat Ayarları (Aynı)
+        // Fiyat Ayarları
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch('https://website3d-93zb.onrender.com/api/fiyat-ayarlari');
+                const response = await fetch('https://bagitasarim.com.tr/api/fiyat-ayarlari');
                 const ayarlar = await response.json();
                 document.getElementById('ayarGram').value = ayarlar.gramBasiMaliyet;
                 document.getElementById('ayarSaat').value = ayarlar.saatlikMakineUcreti;
@@ -238,7 +244,7 @@
                 karMarji: parseFloat(document.getElementById('ayarKar').value)
             };
             try {
-                const response = await fetch('https://website3d-93zb.onrender.com/api/fiyat-ayarlari/guncelle', {
+                const response = await fetch('https://bagitasarim.com.tr/api/fiyat-ayarlari/guncelle', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(yeniAyarlar)
@@ -255,12 +261,12 @@
             }
         });
 
-        // Siparişler (Aynı)
+        // Siparişler
         async function siparisleriGetir() {
             const tablo = document.getElementById('siparisTablosu');
             tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4">Siparişler yükleniyor...</td></tr>';
             try {
-                const response = await fetch('https://website3d-93zb.onrender.com/api/siparisler');
+                const response = await fetch('https://bagitasarim.com.tr/api/siparisler');
                 const siparisler = await response.json();
                 if (siparisler.length === 0) {
                     tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Henüz hiç sipariş bulunmuyor.</td></tr>';
@@ -299,9 +305,10 @@
                 tablo.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Bağlantı hatası oluştu!</td></tr>';
             }
         }
+        
         async function durumGuncelle(id, yeniDurum) {
             try {
-                const response = await fetch(`https://website3d-93zb.onrender.com/api/siparisler/${id}/durum`, {
+                const response = await fetch(`https://bagitasarim.com.tr/api/siparisler/${id}/durum`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ durum: yeniDurum })
@@ -312,14 +319,14 @@
             }
         }
 
-        // --- VİTRİN/ÜRÜN YÖNETİMİ YENİ FONKSİYONLARI ---
-        let guncellenenUrunId = null; // Hangi ürünü güncellediğimizi tutacak değişken
+        // --- VİTRİN/ÜRÜN YÖNETİMİ ---
+        let guncellenenUrunId = null;
 
         async function urunleriGetir() {
             const liste = document.getElementById('urunListesi');
             liste.innerHTML = '<li class="list-group-item text-center text-muted">Ürünler yükleniyor...</li>';
             try {
-                const response = await fetch('https://website3d-93zb.onrender.com/api/urunler');
+                const response = await fetch('https://bagitasarim.com.tr/api/urunler');
                 const urunler = await response.json();
                 if (urunler.length === 0) {
                     liste.innerHTML = '<li class="list-group-item text-center text-muted">Vitrinde henüz ürün yok.</li>';
@@ -356,7 +363,7 @@
 
         async function stokGuncelle(id, yeniStok) {
             try {
-                await fetch(`https://website3d-93zb.onrender.com/api/urunler/${id}/stok`, {
+                await fetch(`https://bagitasarim.com.tr/api/urunler/${id}/stok`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ stokDurumu: yeniStok })
@@ -366,10 +373,9 @@
             }
         }
 
-        // YENİ: Ürünü düzenleme moduna alan fonksiyon
         async function urunDuzenlemeModu(id) {
             try {
-                const response = await fetch(`https://website3d-93zb.onrender.com/api/urunler/${id}`);
+                const response = await fetch(`https://bagitasarim.com.tr/api/urunler/${id}`);
                 const urun = await response.json();
 
                 // Formu doldur
@@ -379,6 +385,9 @@
                 document.getElementById('urunMalzeme').value = urun.malzeme;
                 document.getElementById('urunStok').value = urun.stokDurumu;
                 document.getElementById('urunStl').value = urun.stlDosyaYolu || '';
+                
+                // GÖRSELLERİ VİRGÜLLE BİRLEŞTİRİP KUTUYA YAZDIRMA
+                document.getElementById('urunGorselleri').value = (urun.gorseller && urun.gorseller.length > 0) ? urun.gorseller.join(', ') : '';
 
                 // Form görünümünü "Güncelleme" moduna çevir
                 guncellenenUrunId = urun._id;
@@ -394,7 +403,6 @@
             }
         }
 
-        // YENİ: Düzenleme modundan çıkma (İptal) fonksiyonu
         function duzenlemeIptal() {
             guncellenenUrunId = null;
             document.getElementById('urunFormu').reset();
@@ -408,19 +416,18 @@
             document.getElementById('urunIptalBtn').classList.add('d-none');
         }
 
-        // YENİ: Ürün Silme Fonksiyonu
         async function urunSil(id) {
             const onay = confirm("Bu ürünü vitrinden kalıcı olarak silmek istediğinize emin misiniz?");
             if (!onay) return;
 
             try {
-                const response = await fetch(`https://website3d-93zb.onrender.com/api/urunler/${id}`, {
+                const response = await fetch(`https://bagitasarim.com.tr/api/urunler/${id}`, {
                     method: 'DELETE'
                 });
 
                 if (response.ok) {
                     alert("Ürün başarıyla silindi!");
-                    urunleriGetir(); // Listeyi yenile
+                    urunleriGetir(); 
                 } else {
                     alert("Silme işlemi başarısız oldu.");
                 }
@@ -435,22 +442,26 @@
             const btn = document.getElementById('urunKaydetBtn');
             btn.disabled = true;
 
+            // GÖRSELLERİ VİRGÜLDEN BÖLÜP DİZİYE (ARRAY) ÇEVİRME
+            const gorsellerMetni = document.getElementById('urunGorselleri').value;
+            const gorsellerDizisi = gorsellerMetni ? gorsellerMetni.split(',').map(url => url.trim()).filter(url => url !== '') : [];
+
             const urunData = {
                 isim: document.getElementById('urunIsim').value,
                 fiyat: parseFloat(document.getElementById('urunFiyat').value),
                 aciklama: document.getElementById('urunAciklama').value,
                 malzeme: document.getElementById('urunMalzeme').value,
                 stokDurumu: document.getElementById('urunStok').value,
-                stlDosyaYolu: document.getElementById('urunStl').value
+                stlDosyaYolu: document.getElementById('urunStl').value,
+                gorseller: gorsellerDizisi // GÖRSELLER DİZİ OLARAK EKLENDİ
             };
 
             try {
-                let url = 'https://website3d-93zb.onrender.com/api/urunler';
+                let url = 'https://bagitasarim.com.tr/api/urunler';
                 let method = 'POST'; // Varsayılan: Yeni Ekleme
 
-                // Eğer guncellenenUrunId doluysa, demek ki düzenleme yapıyoruz (PUT)
                 if (guncellenenUrunId) {
-                    url = `https://website3d-93zb.onrender.com/api/urunler/${guncellenenUrunId}`;
+                    url = `https://bagitasarim.com.tr/api/urunler/${guncellenenUrunId}`;
                     method = 'PUT';
                 }
 
@@ -462,8 +473,8 @@
                 
                 if (response.ok) {
                     alert(guncellenenUrunId ? "✅ Ürün güncellendi!" : "✅ Ürün vitrine eklendi!");
-                    duzenlemeIptal(); // Formu sıfırla ve "Ekle" moduna dön
-                    urunleriGetir();  // Listeyi yenile
+                    duzenlemeIptal(); 
+                    urunleriGetir();  
                 }
             } catch (error) {
                 alert("❌ İşlem sırasında sunucuya bağlanılamadı.");

@@ -78,7 +78,8 @@ const urunSema = new mongoose.Schema({
     malzeme: String,
     boyutlar: String,
     stokDurumu: String,
-    stlDosyaYolu: String
+    stlDosyaYolu: String,
+    gorseller: [String]
 });
 const Urun = mongoose.model('Urun', urunSema);
 
@@ -119,6 +120,7 @@ async function verileriOlustur() {
                 malzeme: "PLA+ (Doğa Dostu)",
                 boyutlar: "40mm x 40mm x 3mm",
                 stokDurumu: "Siparişe Özel Üretim",
+                gorseller: ["images/neu-rozet-1.jpg", "images/neu-rozet-2.jpg"],
                 stlDosyaYolu: "models/neu-rozet.stl"
             },
             {
