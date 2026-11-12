@@ -474,6 +474,12 @@ app.post('/api/auth/giris', async (req, res) => {
     }
 });
 
+// 404 Hata Sayfası Yakalayıcı
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+
 // 4. SUNUCUYU BAŞLATMA
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

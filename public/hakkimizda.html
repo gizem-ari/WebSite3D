@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hakkımızda | BAGİ Tasarım</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap" rel="stylesheet">
+    
+    <meta name="description" content="BAGİ Tasarım'ın hikayesini, bilgisayar mühendisliği vizyonuyla kurulan Konya'daki yenilikçi 3D baskı atölyemizi keşfedin.">
+    <meta name="keywords" content="BAGİ Tasarım hakkında, 3D baskı atölyesi, Fatma Gizem Arı, Konya 3D üretim">
+    <meta name="author" content="Fatma Gizem Arı">
+
+    <meta property="og:title" content="Hakkımızda | BAGİ Tasarım">
+    <meta property="og:description" content="Yazılım mühendisliği disiplinini 3D üretim teknolojileriyle birleştiren yenilikçi atölyemizi keşfedin.">
+    <meta property="og:image" content="https://bagitasarim.com.tr/images/og-image.jpg">
+    <meta property="og:url" content="https://bagitasarim.com.tr/hakkimizda.html">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#2563EB">
+    
+    <style>
+        body {
+            background-color: #F3F4F6;
+            color: #1F2937;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .btn-primary { background-color: #2563EB; border-color: #2563EB; }
+        .btn-primary:hover { background-color: #4F46E5; border-color: #4F46E5; }
+    </style>
+</head>
+<body>
+
+    <!-- Üst Menü -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <img src="images/logo.png" alt="BAGİ Tasarım" height="35" class="me-2">
+            <span class="text-primary" style="font-family: 'Montserrat', sans-serif; font-style: italic; font-weight: 800; letter-spacing: 1px;">BAGİ TASARIM</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto"></ul>
+        </div>
+    </div>
+    </nav>
+
+    <!-- Hakkımızda İçeriği -->
+    <div class="container my-5">
+        <div class="row bg-white p-5 rounded-4 shadow-sm align-items-center">
+            <div class="col-lg-12 text-center mb-5">
+                <h1 class="display-5 fw-bold text-primary">Dijital Fikirlerden Fiziksel Gerçekliğe</h1>
+                <p class="lead text-muted mt-3">Yazılım mühendisliği disiplinini 3D üretim teknolojileriyle birleştiren yenilikçi atölye.</p>
+            </div>
+            
+            <div class="col-md-6 mb-4 mb-md-0">
+                <img src="images/hakkimizda-gorsel.jpg" class="img-fluid rounded-4 shadow" alt="BAGİ Tasarım 3D Baskı" onerror="this.src='https://via.placeholder.com/600x400?text=Atolye+Gorseli'">
+            </div>
+            
+            <div class="col-md-6 px-lg-5">
+                <h3 class="fw-bold mb-3">Biz Kimiz?</h3>
+                <p class="text-muted" style="line-height: 1.8;">
+                    BAGİ Tasarım, Konya merkezli bir teknoloji ve 3D üretim atölyesidir. Standart baskı hizmetlerinin ötesine geçerek, bilgisayar mühendisliği altyapımız sayesinde donanım, yazılım ve tasarımı tek bir potada eritiyoruz. Creality ve Bambu Lab gibi endüstri standartlarındaki cihaz parkurumuzla, kişiye özel tasarımlardan endüstriyel prototiplere kadar geniş bir yelpazede hizmet veriyoruz.
+                </p>
+                
+                <h4 class="fw-bold mt-4 mb-3">Kalite ve Çevre Anlayışımız</h4>
+                <p class="text-muted" style="line-height: 1.8;">
+                    Üretim süreçlerimizde yüksek toleranslı doğa dostu PLA+ filamentler kullanarak karbon ayak izimizi minimumda tutuyor, detay hassasiyeti ve pürüzsüz yüzey kalitesinden asla taviz vermiyoruz. 
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geliştirici İmzası ve Alt Bilgi -->
+    <div class="container text-center mt-5 pt-4 border-top text-muted small pb-4">
+        <p>&copy; 2026 BAGİ Tasarım. Tüm hakları saklıdır.</p>
+        <p>Designed & Developed by <a href="https://fatmagizemari.com.tr" target="_blank" class="text-primary text-decoration-none fw-semibold">Fatma Gizem Arı</a> | 
+        <a href="https://github.com/gizem-ari" target="_blank" class="text-secondary text-decoration-none">GitHub</a></p>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dinamik Menü -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const kullaniciStr = localStorage.getItem('kullanici');
+            const navbarUl = document.querySelector('#navbarNav ul');
+
+            if (token && kullaniciStr) {
+                const kullanici = JSON.parse(kullaniciStr);
+                navbarUl.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary fw-bold" href="hakkimizda.html">Hakkımızda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="iletisim.html">İletişim</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-semibold text-primary" href="#" role="button" data-bs-toggle="dropdown">
+                            👤 Merhaba, ${kullanici.isim}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                            <li><a class="dropdown-item fw-bold text-primary" href="profil.html">📦 Siparişlerim</a></li>
+                            ${kullanici.rol === 'admin' ? '<li><a class="dropdown-item text-danger fw-bold" href="admin.html">⚙️ Admin Paneli</a></li>' : ''}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-muted" href="#" onclick="cikisYap()">🚪 Çıkış Yap</a></li>
+                        </ul>
+                    </li>
+                `;
+            } else {
+                navbarUl.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hesapla.html">Anında Fiyat Al</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary fw-bold" href="hakkimizda.html">Hakkımızda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="iletisim.html">İletişim</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="kayit.html">Kayıt Ol</a></li>
+                    <li class="nav-item"><a class="nav-link text-primary fw-bold" href="giris.html">Giriş Yap</a></li>
+                `;
+            }
+        });
+
+        function cikisYap() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('kullanici');
+            window.location.href = 'index.html'; 
+        }
+    </script>
+</body>
+</html>
